@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donate to Developer</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 20L20 70H80L50 20Z' stroke='%23818cf8' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M50 35L30 70H70L50 35Z' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='50' cy='45' r='5' fill='%23818cf8'/%3E%3Cpath d='M50 70V90M35 80L45 90M65 80L55 90' stroke='%23818cf8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #0a0a0f;
+        color: #ffffff;
+        font-family: "Outfit", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #0a0a0f 70%);
+      }
+      .container {
+        background: rgba(20, 20, 30, 0.75);
+        padding: 3rem;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        transform: translateY(0);
+        transition: transform 0.3s;
+      }
+      .container:hover {
+        transform: translateY(-5px);
+      }
+
+      .profile-header {
+        position: relative;
+        margin-bottom: 2rem;
+      }
+      .dev-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #818cf8;
+        box-shadow: 0 0 20px rgba(129, 140, 248, 0.3);
+      }
+
+      h1 {
+        margin: 1rem 0 0.5rem;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1.8rem;
+      }
+      .subtitle {
+        color: #818cf8;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+      }
+
+      p {
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #818cf8;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+      }
+      .btn:hover {
+        background: #6366f1;
+        transform: scale(1.05);
+      }
+
+      .social-list {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      .social-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: 0.2s;
+      }
+      .social-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #818cf8;
+        transform: translateY(-2px);
+      }
+      .social-item i {
+        font-size: 1.1rem;
+      }
+      .full-width {
+        grid-column: span 2;
+      }
+    </style>
+  </head>
+  <body oncontextmenu="return false;">
+    <div class="container">
+      <div class="profile-header">
+        <img src="img/khush.png" alt="Khushaank Gupta" class="dev-img" />
+        <h1>Khushaank Gupta</h1>
+        <div class="subtitle">FocusFlow Developer</div>
+      </div>
+
+      <p>
+        Passionate about technology, finance, and business.<br />
+        Driven to explore ideas that shape growth and value.
+      </p>
+
+      <a
+        href="mailto:khushaankgupta@gmail.com?subject=Feedback for Product&body=Hi, I woul like to give feedback for your product"
+        class="btn"
+        ><i class="fa-solid fa-envelope"></i> Send Feedback</a
+      >
+
+      <div class="social-list">
+        <a
+          href="https://khushaankgupta.qzz.io"
+          target="_blank"
+          class="social-item full-width"
+        >
+          <i class="fa-solid fa-globe"></i> Website
+        </a>
+        <a
+          href="https://linkedin.com/in/khushaank"
+          target="_blank"
+          class="social-item"
+        >
+          <i class="fa-brands fa-linkedin"></i> LinkedIn
+        </a>
+        <a
+          href="https://x.com/Khushaankgupta"
+          target="_blank"
+          class="social-item"
+        >
+          <i class="fa-brands fa-x-twitter"></i> Twitter/X
+        </a>
+        <a
+          href="https://instagram.com/khushaankgupta"
+          target="_blank"
+          class="social-item"
+        >
+          <i class="fa-brands fa-instagram"></i> Instagram
+        </a>
+        <a
+          href="https://youtube.com/@khushaankgupta"
+          target="_blank"
+          class="social-item"
+        >
+          <i class="fa-brands fa-youtube"></i> YouTube
+        </a>
+      </div>
+
+      <div style="margin-top: 2rem; font-size: 0.75rem; opacity: 0.5">
+        &copy; 2026 Flowwy.
+      </div>
+    </div>
+  </body>
+</html>

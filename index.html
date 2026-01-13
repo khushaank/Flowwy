@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flowwy | Premium Focus & Study</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 20L20 70H80L50 20Z' stroke='%23818cf8' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M50 35L30 70H70L50 35Z' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='50' cy='45' r='5' fill='%23818cf8'/%3E%3Cpath d='M50 70V90M35 80L45 90M65 80L55 90' stroke='%23818cf8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+
+    <meta name="description" content="Flowwy (formerly FocusFlow) is a premium, distraction-free study timer and task manager featuring Pomodoro techniques, Lofi music integration, and PWA offline capabilities. Hosted at https://flowwy.netlify.app/">
+    <meta name="keywords" content="Flowwy, study timer, pomodoro, task manager, lofi music, focus app, productivity tool, web app pwa, khushaank gupta">
+    <meta name="author" content="Khushaank Gupta">
+    <meta name="robots" content="index, follow">
+
+    <!-- Security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://www.youtube.com https://s.ytimg.com https://i.ytimg.com https://khushaankgupta.qzz.io; script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: https:;">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://flowwy.netlify.app/">
+    <meta property="og:title" content="Flowwy | Premium Focus & Study">
+    <meta property="og:description" content="Master your time with Flowwy. A beautiful, minimalist study tool with built-in Lofi, tasks, and gamification by Khushaank Gupta.">
+    <meta property="og:image" content="img/khush.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://flowwy.netlify.app/">
+    <meta property="twitter:title" content="Flowwy | Premium Focus & Study">
+    <meta property="twitter:description" content="Master your time with Flowwy. A beautiful, minimalist study tool with built-in Lofi, tasks, and gamification by Khushaank Gupta.">
+    <meta property="twitter:image" content="img/khush.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+<body oncontextmenu="return false;">
+
+    <!-- Background Video -->
+
+
+    <!-- PWA Install Button (Hidden by default) -->
+    <button id="install-btn" class="glass-card" style="display:none; position:fixed; top:2rem; right:10rem; z-index:100; padding:10px 20px; border:none; cursor:pointer;">
+        <i class="fa-solid fa-download"></i> Install App
+    </button>
+    <!-- Logo Svg (Tree) -->
+    <div class="app-logo" title="FocusFlow">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M50 20L20 70H80L50 20Z"
+          stroke="#818cf8"
+          stroke-width="4"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M50 35L30 70H70L50 35Z"
+          stroke="white"
+          stroke-width="3"
+          stroke-linejoin="round"
+        />
+        <circle cx="50" cy="45" r="5" fill="#818cf8" />
+        <path
+          d="M50 70V90M35 80L45 90M65 80L55 90"
+          stroke="#818cf8"
+          stroke-width="4"
+          stroke-linecap="round"
+        />
+      </svg>
+    </div>
+
+    <!-- Backgrounds -->
+    <div class="background-mesh"></div>
+    <div class="background-video-container">
+      <div id="video-background-player"></div>
+      <div class="background-video-overlay"></div>
+    </div>
+
+    <!-- Zen Mode Exit Overlay (Hidden default) -->
+    <div class="zen-exit-overlay" id="zen-overlay">
+      <button class="zen-btn-overlay" id="zen-exit-btn" title="Exit Zen Mode">
+        <i class="fa-solid fa-eye"></i>
+      </button>
+    </div>
+
+    <!-- Main Central Focus Area -->
+    <main class="focus-center">
+      <!-- Timer Widget -->
+      <div class="timer-widget">
+        <svg class="progress-ring" width="320" height="320">
+          <circle
+            class="progress-ring__circle"
+            stroke="white"
+            stroke-width="8"
+            fill="transparent"
+            r="140"
+            cx="160"
+            cy="160"
+          />
+        </svg>
+        <div class="timer-content">
+          <div class="time-text">25:00</div>
+          <div class="timer-label">FOCUS</div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="control-btn secondary" id="reset-btn" title="Reset">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <button
+            class="control-btn primary"
+            id="toggle-timer-btn"
+            title="Start/Pause"
+          >
+            <i class="fa-solid fa-play"></i>
+          </button>
+          <button
+            class="control-btn secondary"
+            id="switch-mode-btn"
+            title="Switch Mode"
+          >
+            <i class="fa-solid fa-shuffle"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Music Mini-Player -->
+      <div class="music-mini">
+        <div class="music-info">
+          <div class="live-badge">LIVE</div>
+          <div class="scrolling-text">
+            <span id="current-track-name">Loading...</span>
+          </div>
+        </div>
+        <div class="music-controls">
+          <button class="music-btn" id="prev-track">
+            <i class="fa-solid fa-backward-step"></i>
+          </button>
+          <button class="music-btn play" id="music-toggle">
+            <i class="fa-solid fa-play"></i>
+          </button>
+          <button class="music-btn" id="next-track">
+            <i class="fa-solid fa-forward-step"></i>
+          </button>
+          <button class="music-btn" id="visual-btn" title="Toggle Visuals">
+            <i class="fa-solid fa-video"></i>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Hover Task Sidebar with Extended Hit Area -->
+    <div class="task-sidebar-area">
+      <div class="task-sidebar-trigger">
+        <div class="task-icon"><i class="fa-solid fa-list-check"></i></div>
+      </div>
+      <div class="task-panel">
+        <div class="task-header-row">
+          <h3>Goals</h3>
+          <button
+            id="clear-done-btn"
+            title="Clear Completed"
+            style="
+              background: none;
+              border: none;
+              color: var(--text-muted);
+              cursor: pointer;
+            "
+          >
+            <i class="fa-solid fa-broom"></i>
+          </button>
+        </div>
+        <div class="input-group">
+          <input type="text" id="task-input" placeholder="Add a new task..." />
+          <button id="add-task-btn"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <ul class="task-list" id="task-list">
+          <!-- Tasks injected here -->
+        </ul>
+      </div>
+    </div>
+
+    <!-- Circular Floating Menu -->
+    <div class="floating-dock-container">
+      <div class="dock-options">
+        <button class="dock-item" id="settings-btn">
+          <i class="fa-solid fa-gear"></i>
+          <span class="dock-label">Settings</span>
+        </button>
+        <button class="dock-item" id="fullscreen-btn">
+          <i class="fa-solid fa-expand"></i>
+          <span class="dock-label">Screen</span>
+        </button>
+        <button class="dock-item" id="zen-btn">
+          <i class="fa-solid fa-eye-slash"></i>
+          <span class="dock-label">Zen</span>
+        </button>
+        <button class="dock-item" id="game-btn">
+          <i class="fa-solid fa-gamepad"></i>
+          <span class="dock-label">Game</span>
+        </button>
+      </div>
+      <button class="dock-main" id="menu-toggle">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settings-modal">
+      <div class="modal-overlay-click"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Settings</h2>
+          <button class="close-modal" id="close-settings">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="setting-group">
+          <label>Pomodoro (mins)</label>
+          <input type="number" id="setting-pomo" value="25" />
+        </div>
+        <div class="setting-group">
+          <label>Short Break (mins)</label>
+          <input type="number" id="setting-short" value="5" />
+        </div>
+        <div class="setting-group">
+          <label>Long Break (mins)</label>
+          <input type="number" id="setting-long" value="15" />
+        </div>
+        <div
+          class="setting-group"
+          style="
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <label>Auto-start Breaks?</label>
+          <input type="checkbox" id="setting-autostart" style="width: auto" />
+        </div>
+        <button class="save-btn" id="save-settings">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Game Modal -->
+    <div class="modal" id="game-modal">
+      <div class="modal-overlay-click"></div>
+      <div class="modal-content" style="align-items: center">
+        <div class="modal-header" style="width: 100%">
+          <h3>Snake Break</h3>
+          <button class="close-modal" id="close-game-btn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <canvas
+          id="game-canvas"
+          width="300"
+          height="300"
+          style="border-radius: 12px; background: #000"
+        ></canvas>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem">
+          <button
+            id="game-autoplay-btn"
+            class="save-btn"
+            style="background: #a855f7"
+          >
+            <i class="fa-solid fa-robot"></i> Auto-Pilot
+      </div>
+    </div>
+
+    <!-- Security & PWA -->
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0f">
+
+    <!-- Footer Links -->
+    <div class="footer-links" style="position:fixed; bottom:2rem; left:2rem; z-index:9999; font-size:0.8rem; opacity:0.8;">
+        <div style="margin-bottom: 0.5rem;">
+            <a href="donate.html" target="_blank" style="color:white; text-decoration:none; margin-right:1rem;">Donate</a>
+            <a href="privacy.html" target="_blank" style="color:white; text-decoration:none;">Privacy</a>
+        </div>
+        <div class="social-links" style="margin-top:0.2rem; justify-content: flex-start; gap: 0.8rem; font-size: 1rem;">
+            <a href="https://instagram.com/khushaankgupta" target="_blank" class="social-btn" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://github.com/khushaank" target="_blank" class="social-btn" title="GitHub"><i class="fa-brands fa-github"></i></a>
+            <a href="https://linkedin.com/in/khushaank" target="_blank" class="social-btn" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="https://x.com/Khushaankgupta" target="_blank" class="social-btn" title="X (Twitter)"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://youtube.com/@khushaankgupta" target="_blank" class="social-btn" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+            <a href="https://khushaankgupta.qzz.io" target="_blank" class="social-btn" title="Website"><i class="fa-solid fa-globe"></i></a>
+        </div>
+        <div style="margin-top:0.5rem; font-size:0.75rem;">
+            &copy; <span id="year-span">2026</span> Flowwy. All rights reserved.
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // PWA Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+        
+        // Protective Scripts
+      document.onkeydown = function (e) {
+        if (e.keyCode == 123) {
+          // F12
+          return false;
+        }
+        if (e.ctrlKey && e.shiftKey && e.keyCode == "I".charCodeAt(0)) {
+          // Ctrl+Shift+I
+          return false;
+        }
+        if (e.ctrlKey && e.shiftKey && e.keyCode == "J".charCodeAt(0)) {
+          // Ctrl+Shift+J
+          return false;
+        }
+        if (e.ctrlKey && e.keyCode == "U".charCodeAt(0)) {
+          // Ctrl+U
+          return false;
+        }
+        if (e.ctrlKey && e.shiftKey && e.keyCode == "C".charCodeAt(0)) {
+          // Ctrl+Shift+C
+          return false;
+        }
+      };
+
+      // Modal Click Outside
+      document.querySelectorAll(".modal-overlay-click").forEach((overlay) => {
+        overlay.addEventListener("click", function () {
+          this.closest(".modal").classList.remove("active");
+        });
+      });
+
+      // ESC to close modals
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document
+            .querySelectorAll(".modal.active")
+            .forEach((m) => m.classList.remove("active"));
+        }
+      });
+    </script>
+  </body>
+</html>
