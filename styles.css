@@ -432,16 +432,20 @@ body.video-mode .background-video-container {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  background: rgba(
-    20,
-    20,
-    30,
-    0.95
-  ); /* Slightly more solid for better contrast */
+  /* Solid Background to block clicks */
+  background: #0a0a0f;
+  /* Fallback: use just the color. No transparency to ensure clicks are blocked. */
+  border-right: 1px solid var(--glass-border);
+  border-radius: 0 20px 20px 0;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+
+  /* Optimize */
+  will-change: transform, opacity;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  z-index: 2005; /* Must be > footer (2001) */
   backdrop-filter: blur(25px);
   border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
 
   opacity: 0;
   visibility: hidden; /* Ensure it's gone */
@@ -606,7 +610,12 @@ body.video-mode .background-video-container {
   flex-direction: column-reverse;
   align-items: flex-end; /* Anchor to right so expansion goes left */
   gap: 0.75rem;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.2s ease;
+  pointer-events: none; /* Container itself shouldn't block, only children */
+}
+
+.floating-dock-container.active {
+  pointer-events: auto;
 }
 
 .dock-main {
@@ -619,7 +628,7 @@ body.video-mode .background-video-container {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   font-size: 1.2rem;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.2s;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -633,18 +642,22 @@ body.video-mode .background-video-container {
 .dock-options {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.8rem;
   opacity: 0;
-  transform: translateY(20px) scale(0.8);
   pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  margin-bottom: 0.5rem;
-  align-items: flex-end;
+  transform: translateY(20px) scale(0.9);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Added background for visibility */
+  background: rgba(30, 30, 35, 0.9);
+  padding: 12px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .floating-dock-container.active .dock-options {
   opacity: 1;
-  transform: translateY(0) scale(1);
   pointer-events: auto;
+  transform: translateY(0) scale(1);
 }
 
 /* Desktop Hover Dock Show */
@@ -789,6 +802,22 @@ body.zen-mode .zen-exit-overlay {
   height: 100%;
 }
 
+/* Task Panel */
+.task-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  overflow-y: auto;
+  /* Translucent Background */
+  background: rgba(10, 10, 15, 0.85); /* Slightly transparent dark background */
+  backdrop-filter: blur(8px); /* Blur effect */
+  display: flex;
+  flex-direction: column;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -850,6 +879,31 @@ body.zen-mode .zen-exit-overlay {
 
 /* Mobile Devices (Landscape & Portrait) */
 @media (max-width: 768px) {
+  .footer-links {
+    display: flex !important;
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem 0;
+    width: 100%;
+    margin-top: auto;
+    z-index: 2000; /* Ensure above video/canvas */
+  }
+
+  .social-links {
+    justify-content: center !important;
+  }
+
+  .footer-links a,
+  .social-links a {
+    pointer-events: auto; /* Force clickable */
+    padding: 0.5rem; /* Increase hit area */
+    position: relative;
+    z-index: 2001;
+  }
+
   body {
     height: auto;
     min-height: 100vh;
@@ -857,7 +911,28 @@ body.zen-mode .zen-exit-overlay {
     overflow-x: hidden;
     flex-direction: column;
     justify-content: flex-start;
-    padding-bottom: 80px; /* Space for floating dock */
+    padding-bottom: 100px; /* More space for floating dock */
+    background: #05050a; /* Darker base */
+  }
+
+  .task-actions {
+    opacity: 1 !important; /* Always show actions on mobile, no hover needed */
+  }
+
+  .logo {
+    position: relative;
+    margin: 3rem auto 1rem auto; /* More top margin to avoid status bar */
+    justify-content: center;
+    transform: none;
+    left: auto;
+    width: 100%;
+  }
+
+  .background-mesh {
+    z-index: -1;
+    opacity: 0.6; /* Ensure visible on mobile */
+    background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, transparent 60%),
+      radial-gradient(circle at 50% 90%, #312e81 0%, transparent 60%), #05050a;
   }
 
   /* Handle Landscape Orientation (Short Height) */
@@ -887,40 +962,31 @@ body.zen-mode .zen-exit-overlay {
   }
 
   .timer-widget {
-    width: 100%;
-    /* Max width controlled by base style, but ensuring margin auto */
-    margin: 0 auto;
-    padding: 1.25rem;
+    width: min(280px, 80vw); /* Slightly smaller width */
+    padding: 0.5rem;
+    gap: 1.25rem;
+    margin-top: 60px; /* Space for the logo at top */
   }
 
   .progress-ring {
-    width: 100%;
-    height: auto;
-    max-width: 280px; /* Smaller ring on mobile */
-    max-height: 280px;
+    max-width: 200px; /* Smaller ring */
+    max-height: 200px;
   }
 
-  /* SVG Scaling */
-  .timer-widget svg.progress-ring {
-    width: 100%;
-    height: auto;
-    max-width: 320px;
-    /* Remove any fixed pixel overrides */
-  }
-
-  .timer-controls {
-    gap: 1rem;
+  .time-text {
+    font-size: 2.5rem; /* Smaller text */
+    margin-top: -25px;
   }
 
   .control-btn.primary {
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
+    width: 55px;
+    height: 55px;
+    font-size: 1.4rem;
   }
 
   .control-btn.secondary {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
   }
 
   /* Mobile Toggle Logic for Floating Dock: CLICK ONLY */
@@ -931,9 +997,42 @@ body.zen-mode .zen-exit-overlay {
   }
 
   /* Rotate main button when active */
-  .floating-dock-container.active .dock-main {
-    /* transform: rotate(90deg); REMOVED: Using icon swap */
+  /* Floating Buttons Positioning - Bottom Right */
+  .floating-dock-container {
+    bottom: 2rem;
+    right: 1.5rem;
+    top: auto;
+    left: auto;
     transform: none;
+    z-index: 100;
+    flex-direction: column-reverse; /* Ensure menu expands upwards */
+    align-items: flex-end;
+    pointer-events: auto; /* Ensure clickable */
+  }
+
+  /* To-Do Trigger - Stay Top Left but Safe */
+  .task-sidebar-trigger {
+    top: 1.5rem;
+    left: 1.5rem;
+    bottom: auto;
+    right: auto;
+    background: rgba(255, 255, 255, 0.1); /* Explicit background */
+    z-index: 100;
+    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    justify-content: center;
+    transform: none;
+  }
+
+  /* Ensure content doesn't get hidden behind buttons */
+  .main-content {
+    padding-bottom: 20px;
+    justify-content: center; /* Center items vertically */
+    min-height: 80vh;
   }
 
   .music-video-wrapper {
@@ -1056,12 +1155,12 @@ body.zen-mode .zen-exit-overlay {
   }
 
   .floating-dock-container {
-    bottom: 1.5rem;
+    bottom: 15vh; /* Much higher up to avoid footer */
     right: 1.5rem;
     flex-direction: column-reverse; /* ensure stack goes UP */
     align-items: flex-end;
     pointer-events: auto; /* Ensure clickable */
-    z-index: 2000; /* High z-index but below sidebar modal */
+    z-index: 9999; /* Max Z-Index to beat footer */
   }
 
   .dock-main {
@@ -1080,34 +1179,46 @@ body.zen-mode .zen-exit-overlay {
     display: none !important;
   }
 
-  /* Fix Music Player Layout */
+  /* Extreme Compact Music Player */
   .music-mini {
     width: 90%;
-    max-width: 300px;
-    padding: 1.25rem;
-    flex-direction: column;
-    gap: 1rem;
+    max-width: 320px;
+    padding: 0.6rem 1rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
     margin: 0 auto;
-    align-items: center;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
   }
 
   .music-info {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 8px;
-    height: auto;
+    border-bottom: none;
+    padding-bottom: 0;
+    gap: 6px;
   }
 
   .scrolling-text {
-    max-width: 100%;
-    margin-bottom: 0px;
-    font-size: 1.1rem;
+    font-size: 0.85rem;
+    max-width: 120px;
+  }
+
+  .music-controls {
+    gap: 0.25rem;
+  }
+
+  .music-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .music-btn.play {
+    width: 40px;
+    height: 32px;
+  }
+
+  .audio-visuals {
+    display: none; /* Hide to save space on mobile */
   }
 
   .audio-visuals {
@@ -1176,7 +1287,9 @@ body.zen-mode .zen-exit-overlay {
   }
 
   .timer-widget {
-    padding: 1rem;
+    width: 90%;
+    margin: 3rem 0; /*  Add spacing around clock */
+    padding: 1.5rem;
   }
 
   .control-btn.primary {

@@ -398,12 +398,13 @@
     <script src="script.js?v=1.1"></script>
     <script>
       // PWA Registration
-      // PWA Service Worker: EXPLICITLY UNREGISTER to fix caching issues
+      // PWA Registration
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          for (let registration of registrations) {
-            registration.unregister();
-          }
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then((reg) => console.log("SW registered!", reg))
+            .catch((err) => console.log("SW failed", err));
         });
       }
 

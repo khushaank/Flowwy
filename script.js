@@ -42,6 +42,29 @@ const state = {
   dragItem: null,
 };
 
+const motivations = [
+  "Believe you can and you're halfway there.",
+  "Your only limit is your mind.",
+  "Do it now. Sometimes 'later' becomes 'never'.",
+  "Dream it. Wish it. Do it.",
+  "Success doesn't just find you. You have to go out and get it.",
+  "The harder you work for something, the greater you'll feel when you achieve it.",
+  "Don't stop when you're tired. Stop when you're done.",
+  "Wake up with determination. Go to bed with satisfaction.",
+  "Do something today that your future self will thank you for.",
+  "Little things make big days.",
+  "It’s going to be hard, but hard does not mean impossible.",
+  "Don't wait for opportunity. Create it.",
+  "Sometimes we're tested not to show our weaknesses, but to discover our strengths.",
+  "The key to success is to focus on goals, not obstacles.",
+  "Dream bigger. Do bigger.",
+  "Don't tell people your plans. Show them your results.",
+  "Small steps in the right direction can turn out to be the biggest step of your life.",
+  "If it was easy, everyone would do it.",
+  "Be the energy you want to attract.",
+  "Focus on being productive instead of busy.",
+];
+
 // --- DOM References ---
 const els = {
   body: document.body,
@@ -562,16 +585,68 @@ function gameLoop() {
   );
 }
 
+// --- Game Touch Controls (Swipe) ---
+let touchStartX = 0;
+let touchStartY = 0;
+
+els.gameCanvas.addEventListener(
+  "touchstart",
+  (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  },
+  { passive: false }
+);
+
+els.gameCanvas.addEventListener(
+  "touchmove",
+  (e) => {
+    e.preventDefault(); // Prevent scrolling while playing
+  },
+  { passive: false }
+);
+
+els.gameCanvas.addEventListener(
+  "touchend",
+  (e) => {
+    const touchEndX = e.changedTouches[0].screenX;
+    const touchEndY = e.changedTouches[0].screenY;
+    handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
+  },
+  { passive: false }
+);
+
+function handleSwipe(sx, sy, ex, ey) {
+  const dx = ex - sx;
+  const dy = ey - sy;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Horizontal
+    if (Math.abs(dx) > 30) {
+      // Threshold
+      if (dx > 0 && state.direction !== "left") state.direction = "right";
+      else if (dx < 0 && state.direction !== "right") state.direction = "left";
+    }
+  } else {
+    // Vertical
+    if (Math.abs(dy) > 30) {
+      if (dy > 0 && state.direction !== "up") state.direction = "down";
+      else if (dy < 0 && state.direction !== "down") state.direction = "up";
+    }
+  }
+}
+
 // --- Listeners ---
-els.btns.settings.addEventListener("click", () => {
+els.btns.settings.addEventListener("click", (e) => {
+  e.preventDefault();
   closeDock();
-  els.modals.settings.classList.add("active");
+  els.modals.settings.style.display = "flex"; // Force display
+  setTimeout(() => els.modals.settings.classList.add("active"), 10);
 });
-document
-  .getElementById("close-settings")
-  .addEventListener("click", () =>
-    els.modals.settings.classList.remove("active")
-  );
+document.getElementById("close-settings").addEventListener("click", () => {
+  els.modals.settings.classList.remove("active");
+  setTimeout(() => (els.modals.settings.style.display = ""), 300); // Reset after anim
+});
 els.btns.saveSettings.addEventListener("click", saveSettings);
 
 els.btns.fullscreen.addEventListener("click", () => {
@@ -579,11 +654,25 @@ els.btns.fullscreen.addEventListener("click", () => {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen();
   else document.exitFullscreen();
 });
-els.btns.zen.addEventListener("click", () => {
+els.btns.zen.addEventListener("click", (e) => {
+  e.preventDefault();
   closeDock();
   toggleZen();
 });
-els.btns.zenExit.addEventListener("click", toggleZen);
+// Ensure Zen Exit is accessible on mobile (touch)
+els.btns.zenExit.addEventListener("click", (e) => {
+  e.preventDefault(); // Prevent ghost clicks
+  toggleZen();
+});
+// Show exit button on touch in Zen mode
+els.body.addEventListener("touchstart", () => {
+  if (state.zenMode) {
+    els.btns.zenExit.style.opacity = "1";
+    setTimeout(() => {
+      if (state.zenMode) els.btns.zenExit.style.opacity = "";
+    }, 3000);
+  }
+});
 
 els.btns.visual.addEventListener("click", () => {
   state.visualMode = state.visualMode === "mesh" ? "video" : "mesh";
@@ -646,19 +735,26 @@ function closeDock() {
   }
 }
 
-els.btns.menuToggle.addEventListener("click", (e) => {
+// Toggle Handler
+function toggleDock(e) {
+  e.preventDefault();
   e.stopPropagation();
   const dock = document.querySelector(".floating-dock-container");
-  const isActive = dock.classList.toggle("active");
+  const isOpen = dock.classList.toggle("active");
 
   // Icon Swap
   const icon = els.btns.menuToggle.querySelector("i");
-  if (isActive) {
+  if (isOpen) {
     icon.className = "fa-solid fa-xmark";
   } else {
     icon.className = "fa-solid fa-bars";
   }
-});
+}
+
+els.btns.menuToggle.addEventListener("click", toggleDock);
+els.btns.menuToggle.addEventListener("touchstart", toggleDock, {
+  passive: false,
+}); // Instant touch response
 
 // Task Sidebar
 const taskSidebarArea = document.querySelector(".task-sidebar-area");
@@ -686,12 +782,18 @@ taskTrigger.addEventListener("click", (e) => {
 document.addEventListener("click", (e) => {
   const dock = document.querySelector(".floating-dock-container");
 
-  // Close Dock if clicked outside
-  if (dock.classList.contains("active") && !dock.contains(e.target)) {
-    dock.classList.remove("active");
-    // Reset Icon
-    const icon = els.btns.menuToggle.querySelector("i");
-    icon.className = "fa-solid fa-bars";
+  // Close Dock if clicked OUTSIDE options or on the OVERLAY
+  // Since we added a ::before overlay to the container, clicking the "background"
+  // is actually clicking the container. We want to close if we didn't click a button.
+  if (dock.classList.contains("active")) {
+    const isBtn = e.target.closest("button");
+    const isOption = e.target.closest(".dock-options");
+    // If we clicked the container (overlay) but NOT a button or the options wrapper
+    if (!isBtn && !isOption) {
+      dock.classList.remove("active");
+      const icon = els.btns.menuToggle.querySelector("i");
+      icon.className = "fa-solid fa-bars";
+    }
   }
 
   // Close Sidebar if clicked outside (and not dragging)
@@ -711,6 +813,55 @@ els.btns.clearDone.addEventListener("click", clearDoneTasks);
 // Global exposed functions for inline onclicks
 window.toggleStar = toggleStar;
 window.deleteTask = deleteTask;
+
+function triggerMotivation() {
+  const quote = motivations[Math.floor(Math.random() * motivations.length)];
+
+  if (!("Notification" in window)) {
+    alert(quote);
+    return;
+  }
+
+  if (Notification.permission === "granted") {
+    new Notification("Daily Motivation", {
+      body: quote,
+      icon: "img/khush.png",
+    });
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        new Notification("Daily Motivation", {
+          body: quote,
+          icon: "img/khush.png",
+        });
+      }
+    });
+  } else {
+    alert(quote);
+  }
+}
+
+// Automatic Motivation Scheduler (Web Parity)
+// Checks every minute if 4 hours have passed since the last motivation
+function startMotivationScheduler() {
+  if (!("Notification" in window)) return;
+
+  setInterval(() => {
+    if (Notification.permission === "granted") {
+      const lastRun = localStorage.getItem("flowwy_last_motivation");
+      const FOUR_HOURS = 4 * 60 * 60 * 1000;
+      const now = Date.now();
+
+      if (!lastRun || now - parseInt(lastRun) > FOUR_HOURS) {
+        triggerMotivation();
+        localStorage.setItem("flowwy_last_motivation", now.toString());
+      }
+    }
+  }, 60000); // Check every minute
+}
+
+// Start scheduler on load
+startMotivationScheduler();
 
 // Auto Year
 const ySpan = document.getElementById("year-span");
