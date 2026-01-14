@@ -52,6 +52,7 @@ body.zen-mode .focus-center,
 body.zen-mode .task-sidebar-area,
 body.zen-mode .floating-dock-container,
 body.zen-mode .app-logo,
+body.zen-mode .footer-links, /* Added explicitly */
 body.zen-mode div[style*="fixed"] {
   /* Hides footer links too */
   opacity: 0;
@@ -60,6 +61,17 @@ body.zen-mode div[style*="fixed"] {
 body.zen-mode .zen-exit-overlay {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Footer Links */
+.footer-links {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 9999;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  transition: opacity 0.5s ease;
 }
 
 /* Backgrounds */
@@ -78,15 +90,28 @@ body.zen-mode .zen-exit-overlay {
   background: radial-gradient(circle at 10% 20%, #1e1b4b 0%, transparent 50%),
     radial-gradient(circle at 90% 80%, #312e81 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, #0f172a 0%, #000 100%);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.8s ease, visibility 0.8s;
 }
 
 .background-video-container {
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  transition: opacity 0.8s ease, visibility 0.8s;
 }
-.background-video-container.active {
+
+body.video-mode .background-mesh {
+  opacity: 0;
+  visibility: hidden;
+}
+
+body.video-mode .background-video-container {
   opacity: 1;
+  visibility: visible;
 }
+
 .background-video-container iframe {
   width: 100vw;
   height: 56.25vw;
@@ -139,7 +164,8 @@ body.zen-mode .zen-exit-overlay {
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  width: 360px;
+  /* Fluid width: grows up to 380px, but shrinks on small screens */
+  width: min(380px, 90vw);
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
@@ -167,9 +193,11 @@ body.zen-mode .zen-exit-overlay {
 }
 
 .time-text {
-  font-size: 4.5rem;
+  /* Fluid text size: scales between 3rem and 4.5rem depending on screen width */
+  font-size: clamp(3rem, 12vw, 4.5rem);
   font-weight: 700;
   letter-spacing: -2px;
+  margin-top: -50px;
 }
 .timer-label {
   font-size: 1rem;
@@ -191,6 +219,7 @@ body.zen-mode .zen-exit-overlay {
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  touch-action: manipulation; /* Improves mobile tap responsiveness */
 }
 
 .control-btn.primary {
@@ -220,57 +249,141 @@ body.zen-mode .zen-exit-overlay {
 
 /* Music Mini-Player */
 .music-mini {
-  width: 360px;
+  width: min(380px, 95vw);
   padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  background: var(--glass-bg);
+  gap: 1.25rem;
+  background: rgba(15, 15, 25, 0.7);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.music-mini:hover {
+  background: rgba(20, 20, 30, 0.8);
+}
+
+/* Audio Visualizer Bars */
+.audio-visuals {
+  display: flex;
+  gap: 4px;
+  height: 24px;
+  align-items: center;
+  margin-left: 12px;
+  opacity: 0.4;
+  flex-shrink: 0;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+}
+
+.music-info.playing .audio-visuals {
+  opacity: 1;
+}
+
+.bar {
+  width: 4px;
+  background: linear-gradient(to top, var(--accent), #a78bfa);
+  border-radius: 4px;
+  height: 20%;
+  transition: height 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.music-info.playing .bar {
+  animation: visualize 0.8s infinite ease-in-out alternate;
+}
+
+.music-info.playing .bar:nth-child(1) {
+  animation-delay: 0s;
+  height: 60%;
+}
+.music-info.playing .bar:nth-child(2) {
+  animation-delay: 0.2s;
+  height: 80%;
+}
+.music-info.playing .bar:nth-child(3) {
+  animation-delay: 0.4s;
+  height: 40%;
+}
+.music-info.playing .bar:nth-child(4) {
+  animation-delay: 0.1s;
+  height: 90%;
+}
+
+@keyframes visualize {
+  0% {
+    height: 20%;
+  }
+  100% {
+    height: 100%;
+  }
 }
 
 .music-info {
-  overflow: hidden;
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 0.5rem;
+  overflow: hidden;
+  flex: 1;
 }
-.live-badge {
-  font-size: 0.6rem;
-  background: #ef4444;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 700;
-}
+
 .scrolling-text {
   white-space: nowrap;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
+  max-width: 180px;
+  letter-spacing: 0.5px;
 }
 
 .music-controls {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
+
 .music-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
+
 .music-btn:hover {
   background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.music-btn.play {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  color: white;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  border: none;
+  box-shadow: none;
+}
+
+.music-btn.play:hover {
+  background: #4f46e5;
+  transform: scale(1.05);
 }
 
 /* Task Sidebar - Improved Hover Logic */
@@ -279,19 +392,11 @@ body.zen-mode .zen-exit-overlay {
   top: 0;
   left: 0;
   height: 100%;
-  width: 50px; /* Invisible trigger zone */
+  width: 50px; /* Constant width, no expansion */
   z-index: 100;
   display: flex;
   align-items: center;
-  transition: width 0.3s;
-}
-
-/* Expand trigger area when hovered or when panel is open */
-/* Expand trigger area when hovered or when panel is open */
-.task-sidebar-area:hover,
-.task-sidebar-area.force-open,
-.task-sidebar-area.is-dragging {
-  width: 380px;
+  pointer-events: none; /* Don't block clicks when closed */
 }
 
 .task-sidebar-trigger {
@@ -302,6 +407,8 @@ body.zen-mode .zen-exit-overlay {
   width: 50px;
   display: flex;
   align-items: center;
+  pointer-events: auto; /* Always clickable */
+  z-index: 150;
 }
 
 .task-icon {
@@ -314,37 +421,57 @@ body.zen-mode .zen-exit-overlay {
   font-size: 1.4rem;
   color: var(--text-muted);
   backdrop-filter: blur(10px);
+  z-index: 151;
+  pointer-events: auto;
 }
 
 .task-panel {
-  width: 340px;
-  height: 450px;
+  width: 360px; /* Reduced from 420px */
+  height: min(500px, 70vh); /* Constrained height */
   margin-left: 60px; /* Offset from icon */
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
+  background: rgba(
+    20,
+    20,
+    30,
+    0.95
+  ); /* Slightly more solid for better contrast */
+  backdrop-filter: blur(25px);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
 
   opacity: 0;
-  transform: translateX(-30px) scale(0.95);
+  visibility: hidden; /* Ensure it's gone */
   pointer-events: none;
-  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  /* transition-delay removed for instant close */
+  transition: opacity 0.2s ease, visibility 0.2s;
 }
 
-.task-sidebar-area:hover .task-panel,
 .task-sidebar-area.force-open .task-panel,
 .task-sidebar-area.is-dragging .task-panel {
   opacity: 1;
-  transform: translateX(0) scale(1);
+  visibility: visible;
   pointer-events: auto;
-  transition-delay: 0s;
+}
+
+/* When sidebar is opened, allow pointer events */
+.task-sidebar-area.force-open {
+  pointer-events: auto;
+}
+
+/* Desktop Hover Panel Show */
+@media (min-width: 769px) {
+  .task-sidebar-area:hover {
+    pointer-events: auto;
+  }
+
+  .task-sidebar-area:hover .task-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
 }
 
 .task-header-row {
@@ -357,29 +484,33 @@ body.zen-mode .zen-exit-overlay {
   display: flex;
   gap: 0.5rem;
   margin: 1rem 0;
+  width: 100%; /* Ensure it spans the panel */
 }
+
 .input-group input {
-  width: 100%;
+  flex: 1;
+  min-width: 0; /* Important: allow it to shrink below default browser width */
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--glass-border);
-  padding: 0.8rem;
+  padding: 0.75rem 1rem;
+  height: 48px; /* Explicit height matching button */
   border-radius: 12px;
   color: white;
   outline: none;
   font-family: inherit;
 }
+
 .input-group button {
   background: var(--accent);
   color: white;
   border: none;
-  width: 42px;
+  width: 48px;
+  height: 48px; /* Fixed height to match input */
   border-radius: 12px;
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: transform 0.2s;
-}
-.input-group button:hover {
-  transform: scale(1.05);
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .task-list {
@@ -479,23 +610,24 @@ body.zen-mode .zen-exit-overlay {
 }
 
 .dock-main {
-  width: 60px;
-  height: 60px;
+  width: 50px; /* Match dock-item width */
+  height: 50px;
   background: var(--accent);
   color: white;
   border: none;
   border-radius: 50%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: transform 0.3s;
+  transition: all 0.3s;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
 }
 .dock-main:hover {
-  transform: rotate(90deg);
+  transform: scale(1.1);
 }
 
 .dock-options {
@@ -507,12 +639,21 @@ body.zen-mode .zen-exit-overlay {
   pointer-events: none;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   margin-bottom: 0.5rem;
-  align-items: flex-end; /* Ensure children anchor right */
+  align-items: flex-end;
 }
-.floating-dock-container:hover .dock-options {
+.floating-dock-container.active .dock-options {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
+}
+
+/* Desktop Hover Dock Show */
+@media (min-width: 769px) {
+  .floating-dock-container:hover .dock-options {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
 }
 
 .dock-item {
@@ -562,6 +703,19 @@ body.zen-mode .zen-exit-overlay {
   opacity: 1;
 }
 
+/* Zen Mode State Hiding */
+body.zen-mode .floating-dock-container,
+body.zen-mode .task-sidebar-area,
+body.zen-mode .app-logo,
+body.zen-mode .footer-links,
+body:has(.modal.active) .floating-dock-container,
+body:has(.modal.active) .task-sidebar-area {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s;
+}
+
 /* Zen Exit Overlay */
 .zen-exit-overlay {
   position: fixed;
@@ -572,6 +726,12 @@ body.zen-mode .zen-exit-overlay {
   pointer-events: none;
   transition: opacity 0.5s;
 }
+
+body.zen-mode .zen-exit-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .zen-btn-overlay {
   width: 60px;
   height: 60px;
@@ -679,90 +839,350 @@ body.zen-mode .zen-exit-overlay {
   }
 }
 
-@media (max-width: 768px) {
+/* Responsive Design & Media Queries */
+
+/* Tablet & Smaller Laptops */
+@media (max-width: 1024px) {
   .timer-widget {
-    transform: scale(0.9);
-    width: 90%;
+    transform: scale(0.95);
   }
-  .music-mini {
-    width: 90%;
+}
+
+/* Mobile Devices (Landscape & Portrait) */
+@media (max-width: 768px) {
+  body {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto; /* Allow scrolling on mobile */
+    overflow-x: hidden;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-bottom: 80px; /* Space for floating dock */
   }
 
-  /* On mobile, sidebar should be click-to-toggle or take less space */
-  .task-sidebar-area {
-    width: 30px;
+  /* Handle Landscape Orientation (Short Height) */
+  @media (max-height: 600px) {
+    .focus-center {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .timer-widget {
+      transform: scale(0.8);
+      margin: 0;
+    }
+    .music-mini {
+      width: 100%;
+      max-width: 300px;
+    }
   }
-  .task-sidebar-area:hover,
-  .task-sidebar-area.force-open {
-    width: 100vw;
-    background: rgba(0, 0, 0, 0.8);
+
+  .focus-center {
+    width: 100%;
+    gap: 1rem;
+    padding: 60px 1rem 120px 1rem; /* Generous bottom padding for scroll space */
+    justify-content: center;
   }
-  .task-panel {
-    width: 85vw;
-    height: 60vh;
-    margin-left: 0;
-    left: 50%;
-    top: 50%;
-    width: 100vw;
-    height: 100vh;
-    transform: translate(-50%, -50%) scale(2); /* Increased scale to completely hide YT UI */
-    position: fixed;
-    object-fit: cover;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0;
+
+  .timer-widget {
+    width: 100%;
+    /* Max width controlled by base style, but ensuring margin auto */
+    margin: 0 auto;
+    padding: 1.25rem;
   }
-  .task-sidebar-area:hover .task-panel {
-    pointer-events: auto;
+
+  .progress-ring {
+    width: 100%;
+    height: auto;
+    max-width: 280px; /* Smaller ring on mobile */
+    max-height: 280px;
+  }
+
+  /* SVG Scaling */
+  .timer-widget svg.progress-ring {
+    width: 100%;
+    height: auto;
+    max-width: 320px;
+    /* Remove any fixed pixel overrides */
+  }
+
+  .timer-controls {
+    gap: 1rem;
+  }
+
+  .control-btn.primary {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .control-btn.secondary {
+    width: 45px;
+    height: 45px;
+  }
+
+  /* Mobile Toggle Logic for Floating Dock: CLICK ONLY */
+  .floating-dock-container.active .dock-options {
     opacity: 1;
-    transform: translate(-50%, -50%);
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
   }
+
+  /* Rotate main button when active */
+  .floating-dock-container.active .dock-main {
+    /* transform: rotate(90deg); REMOVED: Using icon swap */
+    transform: none;
+  }
+
+  .music-video-wrapper {
+    display: block; /* Show video wrapper if it exists (though not adding one now, just unhiding concept) */
+  }
+
+  /* Ensure background video works on mobile */
+  .background-video-container {
+    display: block !important;
+    z-index: -1;
+  }
+
+  .music-controls {
+    width: 100%;
+    justify-content: center;
+    gap: 1.25rem;
+  }
+
+  .music-btn {
+    font-size: 1.2rem;
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Task Sidebar -> Bottom Sheet / Modal on Mobile */
+  .task-sidebar-area {
+    width: 50px;
+    height: 50px;
+    top: 1.5rem;
+    left: 0;
+    bottom: auto;
+    background: transparent;
+    z-index: 2001; /* Ensure above everything else including dock */
+    pointer-events: none; /* Core container shouldn't block, but triggers/panel will */
+  }
+
   .task-sidebar-trigger {
-    left: -10px;
+    width: 50px;
+    height: 50px;
+    left: 0;
+    top: 0;
+    transform: none;
+    background: var(--glass-bg);
+    border-radius: 0 16px 16px 0;
+    justify-content: center;
+    border: 1px solid var(--glass-border);
+    border-left: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: top 0.3s ease; /* smooth transition if any */
+    z-index: 1001; /* Ensure trigger stays above the dim background */
+  }
+
+  /* When open, push trigger down to match original position */
+  .task-sidebar-area.force-open .task-sidebar-trigger {
+    top: 1.5rem;
+  }
+
+  /* Hide floating dock when sidebar is open to avoid clutter */
+  body:has(.task-sidebar-area.force-open) .floating-dock-container {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .task-icon {
+    font-size: 1.2rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: white;
+  }
+
+  /* Responsive Task Panel (Modal) */
+  /* Responsive Task Panel (Modal) */
+  .task-sidebar-area .task-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto; /* Reset base style 'right: 0' */
+    transform: translate(-50%, -45%);
+    width: 92vw;
+    max-width: 360px;
+
+    height: 60vh;
+    max-height: 500px;
+    padding: 1.25rem; /* Reduced padding on mobile */
+    margin: 0;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 1000;
+    background: #13131f; /* Solid backing for mobile */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+  }
+
+  /* Show Delete Button Automatically on Mobile */
+  .task-item .task-btn.del {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Active State (Hover area expanded to screen or specific class) */
+  /* Active State (Mobile: Click only, NO HOVER) */
+  .task-sidebar-area.force-open {
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  /* Make sure panel shows when Force Open */
+  .task-sidebar-area.force-open .task-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%); /* Final position */
+    pointer-events: auto;
   }
 
   .floating-dock-container {
     bottom: 1.5rem;
     right: 1.5rem;
+    flex-direction: column-reverse; /* ensure stack goes UP */
+    align-items: flex-end;
+    pointer-events: auto; /* Ensure clickable */
+    z-index: 2000; /* High z-index but below sidebar modal */
   }
+
   .dock-main {
     width: 50px;
     height: 50px;
-    font-size: 1.2rem;
+    z-index: 901;
+  }
+
+  .dock-options {
+    margin-bottom: 10px;
+    z-index: 901;
+  }
+
+  /* Hide Fullscreen Button on Mobile */
+  #fullscreen-btn {
+    display: none !important;
+  }
+
+  /* Fix Music Player Layout */
+  .music-mini {
+    width: 90%;
+    max-width: 300px;
+    padding: 1.25rem;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 0 auto;
+    align-items: center;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .music-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    height: auto;
+  }
+
+  .scrolling-text {
+    max-width: 100%;
+    margin-bottom: 0px;
+    font-size: 1.1rem;
+  }
+
+  .audio-visuals {
+    margin-left: 0;
+    margin-top: 4px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .music-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto !important;
+    cursor: pointer;
+  }
+
+  .music-btn.play {
+    width: 52px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .dock-item {
+    height: 50px;
+    width: 50px;
+  }
+
+  .dock-item:hover {
+    width: 130px; /* Expand enough for text */
   }
 
   .app-logo {
-    top: 1rem;
-    left: 1rem;
     width: 40px;
     height: 40px;
+    top: 1.5rem;
+    left: 1rem;
+    /* Ensure logo is fixed so it stays when scrolling */
+    position: fixed;
+    z-index: 150;
   }
 
+  /* Footer Links - Hide on mobile if too cluttered, or stack nicely at bottom of flow */
   .footer-links {
+    position: relative; /* Put in flow */
+    bottom: auto;
+    left: auto;
     width: 100%;
     text-align: center;
-    left: 0;
-    bottom: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 0.5rem;
+    padding: 2rem 1rem 1rem;
+    background: transparent;
   }
 }
 
-@media (max-width: 600px) {
+/* Small Mobile / Narrow Screens */
+@media (max-width: 400px) {
+  .timer-widget svg.progress-ring {
+    width: 220px;
+    height: 220px;
+  }
+
+  .time-text {
+    font-size: 3rem;
+  }
+
   .timer-widget {
-    width: 100%;
-    transform: scale(0.85);
+    padding: 1rem;
   }
-  .music-mini {
-    width: 90%;
-  }
-  .task-panel {
-    width: 280px;
-    left: 50px;
-    top: -100px;
+
+  .control-btn.primary {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
   }
 }
 
@@ -781,4 +1201,8 @@ body.zen-mode .zen-exit-overlay {
 .social-btn:hover {
   color: var(--accent);
   transform: translateY(-3px);
+}
+
+.fa-gamepad:before {
+  margin-left: 4px;
 }

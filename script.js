@@ -24,6 +24,11 @@ const state = {
     { name: "Lofi Girl 1 A.M Logic", id: "TURbeWK2wwg" },
     { name: "Nintendo Lofi Mix", id: "jJ765acWecc" },
     { name: "Synthwave Radio", id: "4xDzrJKXOOY" },
+    { name: "Studio Ghibli Lofi", id: "p26m_7P5NIs" },
+    { name: "Coffee Shop Jazz", id: "5vS0_FOnO9Q" },
+    { name: "Minecraft & Chill", id: "S48SviAsT18" },
+    { name: "Persona 5 Lofi Mix", id: "88Xv_7Yf418" },
+    { name: "Rainy Day Ramen Shop", id: "fpxv_Y_q6Sg" },
   ],
 
   gameActive: false,
@@ -124,8 +129,19 @@ function init() {
 // --- VISUAL / ZEN ---
 function toggleZen() {
   state.zenMode = !state.zenMode;
-  if (state.zenMode) els.body.classList.add("zen-mode");
-  else els.body.classList.remove("zen-mode");
+  if (state.zenMode) {
+    els.body.classList.add("zen-mode");
+    // Ensure dock and sidebar are closed when entering Zen mode
+    closeDock();
+    const taskArea = document.querySelector(".task-sidebar-area");
+    if (taskArea) {
+      taskArea.classList.remove("force-open");
+      const taskIcon = taskArea.querySelector(".task-sidebar-trigger i");
+      if (taskIcon) taskIcon.className = "fa-solid fa-list-check";
+    }
+  } else {
+    els.body.classList.remove("zen-mode");
+  }
 }
 
 // --- TIMER ---
@@ -254,15 +270,18 @@ function onYouTubeIframeAPIReady() {
 }
 
 function onPlayerStateChange(e) {
+  const musicInfo = document.querySelector(".music-info");
   if (e.data == YT.PlayerState.PLAYING) {
     state.isPlaying = true;
     els.btns.musicPlay.innerHTML = '<i class="fa-solid fa-pause"></i>';
     els.trackName.textContent = state.playlists[state.currTrackIdx].name;
+    if (musicInfo) musicInfo.classList.add("playing");
   } else if (e.data == YT.PlayerState.ENDED) {
     state.player.playVideo(); // Auto-loop
   } else {
     state.isPlaying = false;
     els.btns.musicPlay.innerHTML = '<i class="fa-solid fa-play"></i>';
+    if (musicInfo) musicInfo.classList.remove("playing");
   }
 }
 
@@ -272,14 +291,24 @@ function onPlayerError(e) {
 }
 
 function changeTrack(dir) {
-  if (!state.player) return;
+  if (!state.player || !state.playlists || state.playlists.length === 0) return;
+
   state.currTrackIdx += dir;
-  if (state.currTrackIdx >= state.playlists.length) state.currTrackIdx = 0;
-  if (state.currTrackIdx < 0) state.currTrackIdx = state.playlists.length - 1;
+
+  if (state.currTrackIdx >= state.playlists.length) {
+    state.currTrackIdx = 0;
+  } else if (state.currTrackIdx < 0) {
+    state.currTrackIdx = state.playlists.length - 1;
+  }
 
   const track = state.playlists[state.currTrackIdx];
-  els.trackName.textContent = "Loading: " + track.name;
-  state.player.loadVideoById(track.id);
+  if (els.trackName) {
+    els.trackName.textContent = "Loading: " + track.name;
+  }
+
+  if (state.player && typeof state.player.loadVideoById === "function") {
+    state.player.loadVideoById(track.id);
+  }
 }
 
 // --- TASKS (Sorted: Starred -> Active -> Done) ---
@@ -362,20 +391,23 @@ function renderTasks() {
     });
 
     li.innerHTML = `
-            <button class="task-btn star" onclick="toggleStar(${task.id})">
+            <button class="task-btn star" onclick="event.stopPropagation(); toggleStar(${
+              task.id
+            })">
                 <i class="${
                   task.starred ? "fa-solid" : "fa-regular"
                 } fa-star"></i>
             </button>
             <span>${task.text}</span>
             <div class="task-actions">
-                <button class="task-btn del" onclick="deleteTask(${
+                <button class="task-btn del" onclick="event.stopPropagation(); deleteTask(${
                   task.id
                 })"><i class="fa-solid fa-trash"></i></button>
             </div>
         `;
 
     li.addEventListener("click", (e) => {
+      e.stopPropagation(); // Stop bubble so menu doesn't close
       if (e.target.tagName !== "BUTTON" && e.target.tagName !== "I") {
         const original = state.tasks.find((t) => t.id === task.id);
         if (original) {
@@ -465,15 +497,23 @@ function gameKey(e) {
   if (state.gameAuto) return;
   switch (e.key) {
     case "ArrowUp":
+    case "w":
+    case "W":
       if (state.direction != "down") state.direction = "up";
       break;
     case "ArrowDown":
+    case "s":
+    case "S":
       if (state.direction != "up") state.direction = "down";
       break;
     case "ArrowLeft":
+    case "a":
+    case "A":
       if (state.direction != "right") state.direction = "left";
       break;
     case "ArrowRight":
+    case "d":
+    case "D":
       if (state.direction != "left") state.direction = "right";
       break;
   }
@@ -523,9 +563,10 @@ function gameLoop() {
 }
 
 // --- Listeners ---
-els.btns.settings.addEventListener("click", () =>
-  els.modals.settings.classList.add("active")
-);
+els.btns.settings.addEventListener("click", () => {
+  closeDock();
+  els.modals.settings.classList.add("active");
+});
 document
   .getElementById("close-settings")
   .addEventListener("click", () =>
@@ -534,24 +575,34 @@ document
 els.btns.saveSettings.addEventListener("click", saveSettings);
 
 els.btns.fullscreen.addEventListener("click", () => {
+  closeDock();
   if (!document.fullscreenElement) document.documentElement.requestFullscreen();
   else document.exitFullscreen();
 });
-els.btns.zen.addEventListener("click", toggleZen);
+els.btns.zen.addEventListener("click", () => {
+  closeDock();
+  toggleZen();
+});
 els.btns.zenExit.addEventListener("click", toggleZen);
 
 els.btns.visual.addEventListener("click", () => {
   state.visualMode = state.visualMode === "mesh" ? "video" : "mesh";
-  if (state.visualMode === "video") {
-    els.bgMesh.style.opacity = "0";
-    els.bgVideo.classList.add("active");
-  } else {
-    els.bgMesh.style.opacity = "1";
-    els.bgVideo.classList.remove("active");
+  els.body.classList.toggle("video-mode", state.visualMode === "video");
+
+  // Update button icon/state if needed
+  const icon = els.btns.visual.querySelector("i");
+  if (icon) {
+    icon.className =
+      state.visualMode === "video"
+        ? "fa-solid fa-border-none"
+        : "fa-solid fa-video";
   }
 });
 
-els.btns.game.addEventListener("click", startGame);
+els.btns.game.addEventListener("click", () => {
+  closeDock();
+  startGame();
+});
 document.getElementById("close-game-btn").addEventListener("click", stopGame);
 els.gameAutoBtn.addEventListener("click", () => {
   state.gameAuto = !state.gameAuto;
@@ -562,18 +613,98 @@ els.btns.toggleTimer.addEventListener("click", toggleTimer);
 els.btns.reset.addEventListener("click", resetTimer);
 els.btns.switchMode.addEventListener("click", switchTimerMode);
 
-els.btns.musicPlay.addEventListener("click", () => {
-  if (state.isPlaying) state.player.pauseVideo();
-  else state.player.playVideo();
-});
-els.btns.musicNext.addEventListener("click", () => changeTrack(1));
-els.btns.musicPrev.addEventListener("click", () => changeTrack(-1));
+// Music Controls
+if (els.btns.musicPlay) {
+  els.btns.musicPlay.addEventListener("click", () => {
+    if (!state.player) return;
+    if (state.isPlaying) state.player.pauseVideo();
+    else state.player.playVideo();
+  });
+}
+if (els.btns.musicNext) {
+  els.btns.musicNext.addEventListener("click", () => changeTrack(1));
+}
+if (els.btns.musicPrev) {
+  els.btns.musicPrev.addEventListener("click", () => changeTrack(-1));
+}
 
 els.btns.addTask.addEventListener("click", addTask);
 els.inputs.task.addEventListener(
   "keypress",
   (e) => e.key === "Enter" && addTask()
 );
+
+// --- Mobile Toggles ---
+
+// Floating Dock (Hamburger)
+function closeDock() {
+  const dock = document.querySelector(".floating-dock-container");
+  if (dock && dock.classList.contains("active")) {
+    dock.classList.remove("active");
+    const icon = els.btns.menuToggle.querySelector("i");
+    if (icon) icon.className = "fa-solid fa-bars";
+  }
+}
+
+els.btns.menuToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const dock = document.querySelector(".floating-dock-container");
+  const isActive = dock.classList.toggle("active");
+
+  // Icon Swap
+  const icon = els.btns.menuToggle.querySelector("i");
+  if (isActive) {
+    icon.className = "fa-solid fa-xmark";
+  } else {
+    icon.className = "fa-solid fa-bars";
+  }
+});
+
+// Task Sidebar
+const taskSidebarArea = document.querySelector(".task-sidebar-area");
+const taskTrigger = document.querySelector(".task-sidebar-trigger");
+const taskIcon = taskTrigger.querySelector("i");
+
+// Prevent clicks INSIDE the panel from closing it
+document.querySelector(".task-panel").addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+taskTrigger.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = taskSidebarArea.classList.toggle("force-open");
+
+  // Icon Swap
+  if (isOpen) {
+    taskIcon.className = "fa-solid fa-xmark";
+  } else {
+    taskIcon.className = "fa-solid fa-list-check";
+  }
+});
+
+// Close menus when clicking outside
+document.addEventListener("click", (e) => {
+  const dock = document.querySelector(".floating-dock-container");
+
+  // Close Dock if clicked outside
+  if (dock.classList.contains("active") && !dock.contains(e.target)) {
+    dock.classList.remove("active");
+    // Reset Icon
+    const icon = els.btns.menuToggle.querySelector("i");
+    icon.className = "fa-solid fa-bars";
+  }
+
+  // Close Sidebar if clicked outside (and not dragging)
+  if (
+    taskSidebarArea.classList.contains("force-open") &&
+    !taskSidebarArea.contains(e.target) &&
+    !taskSidebarArea.classList.contains("is-dragging")
+  ) {
+    taskSidebarArea.classList.remove("force-open");
+    // Reset Icon
+    taskIcon.className = "fa-solid fa-list-check";
+  }
+});
 
 els.btns.clearDone.addEventListener("click", clearDoneTasks);
 
@@ -629,7 +760,7 @@ installBtn.addEventListener("click", async () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to install prompt: ${outcome}`);
+
     deferredPrompt = null;
     installBtn.style.display = "none";
   }
