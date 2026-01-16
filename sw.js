@@ -1,9 +1,10 @@
-const CACHE_NAME = "flowwy-v2";
+const CACHE_NAME = "flowwy-v3";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./script.js",
+  "./audio-player.js",
   "./manifest.json",
   "./img/logo.png",
   "./img/preview-desktop.png",

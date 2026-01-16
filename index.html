@@ -111,10 +111,9 @@
 
     <!-- Backgrounds -->
     <div class="background-mesh"></div>
-    <div class="background-video-container">
-      <div id="video-background-player"></div>
-      <div class="background-video-overlay"></div>
-    </div>
+
+    <!-- Hidden Audio Player for Archive.org -->
+    <audio id="audio-player" preload="metadata"></audio>
 
     <!-- Zen Mode Exit Overlay (Hidden default) -->
     <div class="zen-exit-overlay" id="zen-overlay">
@@ -192,9 +191,6 @@
           </button>
           <button class="music-btn" id="next-track">
             <i class="fa-solid fa-forward-step"></i>
-          </button>
-          <button class="music-btn" id="visual-btn" title="Toggle Visuals">
-            <i class="fa-solid fa-video"></i>
           </button>
         </div>
       </div>
@@ -426,7 +422,8 @@
       </div>
     </div>
 
-    <script src="script.js?v=1.5"></script>
+    <script src="audio-player.js?v=2.0"></script>
+    <script src="script.js?v=2.0"></script>
     <script>
       // PWA Registration
       // PWA Registration

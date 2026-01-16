@@ -20,15 +20,38 @@ const state = {
   zenMode: false,
 
   playlists: [
-    { name: "Zelda & Chill", id: "GdzrrWA8e7A" },
-    { name: "Lofi Girl 1 A.M Logic", id: "TURbeWK2wwg" },
-    { name: "Nintendo Lofi Mix", id: "jJ765acWecc" },
-    { name: "Synthwave Radio", id: "4xDzrJKXOOY" },
-    { name: "Studio Ghibli Lofi", id: "p26m_7P5NIs" },
-    { name: "Coffee Shop Jazz", id: "5vS0_FOnO9Q" },
-    { name: "Minecraft & Chill", id: "S48SviAsT18" },
-    { name: "Persona 5 Lofi Mix", id: "88Xv_7Yf418" },
-    { name: "Rainy Day Ramen Shop", id: "fpxv_Y_q6Sg" },
+    {
+      name: "Lofi Hip Hop Study Mix",
+      url: "https://archive.org/download/lofi-hip-hop-mix-2021/LoFi%20Hip%20Hop%20Mix%202021.mp3",
+    },
+    {
+      name: "Chill Lofi Beats",
+      url: "https://archive.org/download/chill-lofi-beats-mix/Chill_Lofi_Beats_Mix.mp3",
+    },
+    {
+      name: "Jazz Lofi Study",
+      url: "https://archive.org/download/jazz-lofi-study-music/Jazz_Lofi_Study_Music.mp3",
+    },
+    {
+      name: "Ambient Study Music",
+      url: "https://archive.org/download/ambient-study-music-2022/Ambient_Study_Music.mp3",
+    },
+    {
+      name: "Rainy Day Lofi",
+      url: "https://archive.org/download/rainy-day-lofi-mix/Rainy_Day_Lofi.mp3",
+    },
+    {
+      name: "Midnight Lofi",
+      url: "https://archive.org/download/midnight-lofi-beats/Midnight_Lofi_Beats.mp3",
+    },
+    {
+      name: "Focus Flow",
+      url: "https://archive.org/download/focus-flow-lofi/Focus_Flow_Lofi.mp3",
+    },
+    {
+      name: "Chill Vibes Only",
+      url: "https://archive.org/download/chill-vibes-lofi/Chill_Vibes_Lofi.mp3",
+    },
   ],
 
   snake: [],
