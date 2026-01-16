@@ -8,12 +8,12 @@
   "description": "A premium study timer and task manager.",
   "icons": [
     {
-      "src": "img/khush.png",
+      "src": "img/logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "img/khush.png",
+      "src": "img/logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }
@@ -37,14 +37,14 @@
       "short_name": "Focus",
       "description": "Start the timer immediately",
       "url": "./index.html?action=start",
-      "icons": [{ "src": "img/khush.png", "sizes": "192x192" }]
+      "icons": [{ "src": "img/logo.png", "sizes": "192x192" }]
     },
     {
       "name": "Tasks",
       "short_name": "Tasks",
       "description": "View your goals",
       "url": "./index.html?action=tasks",
-      "icons": [{ "src": "img/khush.png", "sizes": "192x192" }]
+      "icons": [{ "src": "img/logo.png", "sizes": "192x192" }]
     }
   ]
 }

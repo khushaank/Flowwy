@@ -86,20 +86,65 @@ body.zen-mode .zen-exit-overlay {
   transition: opacity 0.6s ease;
 }
 
+/* Background Curve Animation */
+.background-curve {
+  position: absolute;
+  top: 50%;
+  left: -20%;
+  width: 140%;
+  height: 200px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 102, 241, 0.1),
+    transparent
+  );
+  filter: blur(40px);
+  transform: rotate(-15deg);
+  animation: curveFloat 15s infinite ease-in-out;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes curveFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-15deg) scaleX(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-50px) rotate(-12deg) scaleX(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Ensure curve is visible by default */
+.background-curve {
+  visibility: visible;
+  transition:
+    opacity 0.8s ease,
+    visibility 0.8s;
+}
+
 .background-mesh {
-  background: radial-gradient(circle at 10% 20%, #1e1b4b 0%, transparent 50%),
+  background:
+    radial-gradient(circle at 10% 20%, #1e1b4b 0%, transparent 50%),
     radial-gradient(circle at 90% 80%, #312e81 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, #0f172a 0%, #000 100%);
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.8s ease, visibility 0.8s;
+  transition:
+    opacity 0.8s ease,
+    visibility 0.8s;
 }
 
 .background-video-container {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.8s ease, visibility 0.8s;
+  transition:
+    opacity 0.8s ease,
+    visibility 0.8s;
 }
 
 body.video-mode .background-mesh {
@@ -110,6 +155,11 @@ body.video-mode .background-mesh {
 body.video-mode .background-video-container {
   opacity: 1;
   visibility: visible;
+}
+
+body.video-mode .background-curve {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .background-video-container iframe {
@@ -156,6 +206,13 @@ body.video-mode .background-video-container {
   transition: opacity 0.5s ease;
 }
 
+@media (max-width: 768px) {
+  .focus-center {
+    gap: 1rem; /* Tighter gap between timer and music player on mobile */
+    margin-top: -1rem; /* Pull everything up slightly */
+  }
+}
+
 /* Timer Widget */
 .timer-widget {
   position: relative;
@@ -172,6 +229,15 @@ body.video-mode .background-video-container {
   border-radius: 24px;
   /* Removed heavy shadows/glows as requested */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .timer-widget {
+    padding: 1.5rem; /* Reduced padding on mobile */
+    gap: 1rem; /* Reduced internal gap */
+    width: min(340px, 85vw); /* Slightly smaller width */
+  }
 }
 
 .progress-ring__circle {
@@ -386,322 +452,257 @@ body.video-mode .background-video-container {
   transform: scale(1.05);
 }
 
-/* Task Sidebar - Improved Hover Logic */
-.task-sidebar-area {
+/* =========================================
+   Loading Screen
+   ========================================= */
+#loading-screen {
   position: fixed;
   top: 0;
   left: 0;
+  width: 100%;
   height: 100%;
-  width: 50px; /* Constant width, no expansion */
-  z-index: 100;
+  background: black;
   display: flex;
+  justify-content: center;
   align-items: center;
-  pointer-events: none; /* Don't block clicks when closed */
+  z-index: 99999;
+  transition:
+    opacity 0.8s ease,
+    visibility 0.8s;
 }
 
-.task-sidebar-trigger {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 50px;
-  display: flex;
-  align-items: center;
-  pointer-events: auto; /* Always clickable */
-  z-index: 150;
+#loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
 }
 
-.task-icon {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-left: none;
-  padding: 1rem 0.6rem;
-  border-radius: 0 16px 16px 0;
-  cursor: pointer;
-  font-size: 1.4rem;
-  color: var(--text-muted);
-  backdrop-filter: blur(10px);
-  z-index: 151;
-  pointer-events: auto;
-}
-
-.task-panel {
-  width: 360px; /* Reduced from 420px */
-  height: min(500px, 70vh); /* Constrained height */
-  margin-left: 60px; /* Offset from icon */
-  padding: 1.5rem;
+.loader-content {
   display: flex;
   flex-direction: column;
-  /* Solid Background to block clicks */
-  background: #0a0a0f;
-  /* Fallback: use just the color. No transparency to ensure clicks are blocked. */
-  border-right: 1px solid var(--glass-border);
-  border-radius: 0 20px 20px 0;
-  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
-
-  /* Optimize */
-  will-change: transform, opacity;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-
-  z-index: 2005; /* Must be > footer (2001) */
-  backdrop-filter: blur(25px);
-  border: 1px solid var(--glass-border);
-
-  opacity: 0;
-  visibility: hidden; /* Ensure it's gone */
-  pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s;
+  align-items: center;
+  gap: 2rem;
 }
 
-.task-sidebar-area.force-open .task-panel,
-.task-sidebar-area.is-dragging .task-panel {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+.pulse-logo {
+  width: 120px;
+  height: auto;
+  animation: logoPulse 2s infinite ease-in-out;
+  filter: drop-shadow(0 0 20px rgba(129, 140, 248, 0.4));
 }
 
-/* When sidebar is opened, allow pointer events */
-.task-sidebar-area.force-open {
-  pointer-events: auto;
-}
-
-/* Desktop Hover Panel Show */
-@media (min-width: 769px) {
-  .task-sidebar-area:hover {
-    pointer-events: auto;
-  }
-
-  .task-sidebar-area:hover .task-panel {
+@keyframes logoPulse {
+  0%,
+  100% {
+    transform: scale(1);
     opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
+    filter: drop-shadow(0 0 20px rgba(129, 140, 248, 0.4));
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 35px rgba(129, 140, 248, 0.7));
   }
 }
 
-.task-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.input-group {
-  display: flex;
-  gap: 0.5rem;
-  margin: 1rem 0;
-  width: 100%; /* Ensure it spans the panel */
-}
-
-.input-group input {
-  flex: 1;
-  min-width: 0; /* Important: allow it to shrink below default browser width */
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--glass-border);
-  padding: 0.75rem 1rem;
-  height: 48px; /* Explicit height matching button */
-  border-radius: 12px;
-  color: white;
-  outline: none;
-  font-family: inherit;
-}
-
-.input-group button {
-  background: var(--accent);
-  color: white;
-  border: none;
-  width: 48px;
-  height: 48px; /* Fixed height to match input */
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.task-list {
-  list-style: none;
-  overflow-y: auto;
-  flex: 1;
-  padding-right: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* Draggable Task Styles */
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  font-size: 0.95rem;
-  cursor: grab;
-  transition: all 0.2s;
-  user-select: none;
-  border: 1px solid transparent;
-}
-.task-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-.task-item.dragging {
-  opacity: 0.5;
+.loader-bar {
+  width: 200px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px dashed var(--accent);
+  border-radius: 2px;
+  overflow: hidden;
 }
 
-.task-item.star-active {
-  border-color: rgba(251, 191, 36, 0.3);
-  background: rgba(251, 191, 36, 0.05);
+.loader-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color);
+  animation: loadProgress 2s ease-out forwards;
 }
 
-.task-item.done-task span {
-  text-decoration: line-through;
-  color: var(--text-muted);
+@keyframes loadProgress {
+  0% {
+    width: 0%;
+  }
+  60% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
-.task-item span {
-  flex: 1;
-  word-break: break-word;
-}
-
-.task-actions {
-  display: flex;
-  gap: 0.25rem;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.task-item:hover .task-actions {
-  opacity: 1;
-}
-
-.task-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+/* =========================================
+   New Floating Settings Button (Top Right)
+   ========================================= */
+.settings-floating-btn {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
   cursor: pointer;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
-.task-btn:hover {
+
+.settings-floating-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-}
-.task-btn.star:hover,
-.task-item.star-active .task-btn.star {
-  color: var(--gold);
-}
-.task-btn.del:hover {
-  color: var(--danger);
+  transform: rotate(90deg) scale(1.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* Floating Dock */
+/* Zen Mode hides settings */
+body.zen-mode .settings-floating-btn {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+}
+
+/* Responsive Position */
+@media (max-width: 768px) {
+  .settings-floating-btn {
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Deprecated Floating Dock Styles (Hidden/Removed) */
 .floating-dock-container {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  z-index: 200;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: flex-end; /* Anchor to right so expansion goes left */
-  gap: 0.75rem;
-  transition: opacity 0.2s ease;
-  pointer-events: none; /* Container itself shouldn't block, only children */
+  display: none;
 }
 
-.floating-dock-container.active {
-  pointer-events: auto;
-}
-
+/* Reusing dock interaction for single button */
 .dock-main {
-  width: 50px; /* Match dock-item width */
-  height: 50px;
-  background: var(--accent);
-  color: white;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7); /* Muted white */
   border: none;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   font-size: 1.2rem;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: color 0.2s;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
 }
+
 .dock-main:hover {
-  transform: scale(1.1);
+  color: white;
+  /* No scale transform for "still" effect */
+}
+
+/* Hide old options container since we just want one button */
+.dock-options,
+.dock-item,
+.dock-label,
+.floating-dock-container.active .dock-options {
+  display: none !important;
 }
 
 .dock-options {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 12px;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(20px) scale(0.9);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Added background for visibility */
-  background: rgba(30, 30, 35, 0.9);
-  padding: 12px;
-  border-radius: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-bottom: 5px; /* Spacing from main button */
 }
 
 .floating-dock-container.active .dock-options {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
 }
 
-/* Desktop Hover Dock Show */
-@media (min-width: 769px) {
-  .floating-dock-container:hover .dock-options {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-  }
+/* Staggered Animation for children */
+.floating-dock-container.active .dock-options .dock-item:nth-child(1) {
+  transition-delay: 0.1s;
+}
+.floating-dock-container.active .dock-options .dock-item:nth-child(2) {
+  transition-delay: 0.05s;
+}
+.floating-dock-container.active .dock-options .dock-item:nth-child(3) {
+  transition-delay: 0s;
 }
 
 .dock-item {
   width: 50px;
   height: 50px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: rgba(30, 30, 40, 0.6); /* Glassy dark */
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-main);
-  border-radius: 30px;
+  border-radius: 25px; /* Pill shape base */
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+  transition:
+    width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.2s ease,
+    transform 0.2s ease;
+
   display: flex;
-  flex-direction: row-reverse; /* CRITICAL: Puts Icon (1st child) on Right, Label (2nd child) on Left */
+  flex-direction: row-reverse;
   align-items: center;
-  justify-content: flex-start; /* With row-reverse, start is Right. So this packs items to Right. */
+  justify-content: flex-start;
   padding-right: 0;
   overflow: hidden;
   white-space: nowrap;
+
+  /* Initial hidden state customization */
+  transform: scale(0.9);
+  opacity: 0;
 }
 
-/* Icon container fixed width to stay circular-ish at end */
+/* Active state just makes them visible, DOES NOT expand width by default */
+.floating-dock-container.active .dock-item {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Label is hidden by default again */
+.floating-dock-container.active .dock-label {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Icon container */
 .dock-item i {
   min-width: 50px;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  font-size: 1.1rem;
 }
 
 .dock-item:hover {
-  width: 140px; /* Expand to left */
-  background: white;
+  width: 140px;
+  background: rgba(255, 255, 255, 0.95);
   color: black;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
+  border-color: white;
 }
 
 .dock-label {
@@ -726,7 +727,9 @@ body:has(.modal.active) .task-sidebar-area {
   opacity: 0 !important;
   pointer-events: none !important;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s;
 }
 
 /* Zen Exit Overlay */
@@ -755,9 +758,13 @@ body.zen-mode .zen-exit-overlay {
   font-size: 1.5rem;
   cursor: pointer;
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 .zen-btn-overlay:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
 }
 
 /* Modals */
@@ -768,15 +775,22 @@ body.zen-mode .zen-exit-overlay {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
-  z-index: 999;
+  z-index: 99999;
   display: none;
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
 }
 .modal.active {
-  display: flex;
-  animation: fadeModal 0.3s;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 99999 !important;
 }
 
 .modal-content {
@@ -784,7 +798,9 @@ body.zen-mode .zen-exit-overlay {
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(20px);
   border-radius: 24px;
-  width: 400px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 650px; /* Wider for better 2-col grid */
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -931,7 +947,8 @@ body.zen-mode .zen-exit-overlay {
   .background-mesh {
     z-index: -1;
     opacity: 0.6; /* Ensure visible on mobile */
-    background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, transparent 60%),
+    background:
+      radial-gradient(circle at 50% 10%, #1e1b4b 0%, transparent 60%),
       radial-gradient(circle at 50% 90%, #312e81 0%, transparent 60%), #05050a;
   }
 
@@ -1128,7 +1145,10 @@ body.zen-mode .zen-exit-overlay {
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
     border-radius: 20px;
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease,
+      visibility 0.3s;
   }
 
   /* Show Delete Button Automatically on Mobile */
@@ -1318,4 +1338,238 @@ body.zen-mode .zen-exit-overlay {
 
 .fa-gamepad:before {
   margin-left: 4px;
+}
+/* Shortcuts Grid */
+/* Shortcuts Grid */
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.shortcut-item {
+  display: flex;
+  justify-content: space-between; /* Push items to ends */
+  align-items: center;
+  padding: 0.6rem 1rem;
+  background: transparent; /* Clean look */
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.shortcut-item:hover {
+  background: rgba(255, 255, 255, 0.05); /* Subtle highlight */
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.shortcut-item:last-child {
+  border-bottom: 1px solid transparent;
+}
+
+/* Modern Minimalist Keycap */
+kbd {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif; /* Clean sans */
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  min-width: 24px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 2px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2); /* Very subtle depth */
+}
+
+/* Swap Order: Action Left, Keys Right */
+.keys {
+  order: 2;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.action {
+  order: 1;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.95rem;
+  font-weight: 400;
+  text-align: left;
+  flex-grow: 1; /* Take up space */
+}
+
+/* Highlight action text on hover */
+.shortcut-item:hover .action {
+  color: white;
+}
+
+/* Responsive adjustments for shortcuts */
+@media (max-width: 700px) {
+  .shortcuts-grid {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .shortcut-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* List separator on mobile */
+    padding: 0.8rem 0.5rem;
+    border-radius: 0;
+  }
+
+  .shortcut-item:last-child {
+    border-bottom: none;
+    border-color: transparent;
+  }
+
+  .action {
+    font-size: 0.9rem;
+  }
+}
+
+/* =========================================
+   Loading Screen
+   ========================================= */
+#loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  transition:
+    opacity 0.8s ease,
+    visibility 0.8s;
+}
+
+#loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.pulse-logo {
+  width: 120px;
+  height: auto;
+  animation: logoPulse 2s infinite ease-in-out;
+  filter: drop-shadow(0 0 20px rgba(129, 140, 248, 0.4));
+}
+
+@keyframes logoPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(129, 140, 248, 0.4));
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 35px rgba(129, 140, 248, 0.7));
+  }
+}
+
+.loader-bar {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loader-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color);
+  animation: loadProgress 2s ease-out forwards;
+}
+
+@keyframes loadProgress {
+  0% {
+    width: 0%;
+  }
+  60% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   New Floating Settings Button (Top Right)
+   ========================================= */
+.settings-floating-btn {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.settings-floating-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: rotate(90deg) scale(1.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Zen Mode hides settings */
+body.zen-mode .settings-floating-btn {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+}
+
+/* Responsive Position */
+@media (max-width: 768px) {
+  .settings-floating-btn {
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Deprecated Floating Dock Styles (Hidden/Removed) */
+.floating-dock-container {
+  display: none !important;
 }

@@ -74,7 +74,7 @@ public class NotificationReceiver extends BroadcastReceiver {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        int iconResId = context.getResources().getIdentifier("khush", "drawable", context.getPackageName());
+        int iconResId = context.getResources().getIdentifier("logo", "drawable", context.getPackageName());
         Bitmap largeIcon = null;
         if (iconResId != 0) {
             largeIcon = BitmapFactory.decodeResource(context.getResources(), iconResId);

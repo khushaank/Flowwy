@@ -1,11 +1,11 @@
 const state = {
-  settings: JSON.parse(localStorage.getItem("focusflow_settings")) || {
+  settings: JSON.parse(localStorage.getItem("flowwy_settings")) || {
     pomodoro: 25,
     shortBreak: 5,
     longBreak: 15,
     autoStart: false,
+    musicLink: false,
   },
-  tasks: JSON.parse(localStorage.getItem("focusflow_tasks")) || [],
 
   timeLeft: 25 * 60,
   currDuration: 25 * 60,
@@ -31,15 +31,10 @@ const state = {
     { name: "Rainy Day Ramen Shop", id: "fpxv_Y_q6Sg" },
   ],
 
-  gameActive: false,
-  gameAuto: false,
-  gameInterval: null,
-  snake: [{ x: 10, y: 10 }],
-  food: { x: 5, y: 5 },
+  snake: [],
+  food: {},
   direction: "right",
   score: 0,
-
-  dragItem: null,
 };
 
 const motivations = [
@@ -79,37 +74,30 @@ const els = {
     musicPlay: document.getElementById("music-toggle"),
     musicNext: document.getElementById("next-track"),
     musicPrev: document.getElementById("prev-track"),
-    settings: document.getElementById("settings-btn"),
-    fullscreen: document.getElementById("fullscreen-btn"),
+    settings: document.getElementById("settings-trigger-btn"),
+
     visual: document.getElementById("visual-btn"),
-    zen: document.getElementById("zen-btn"),
     zenExit: document.getElementById("zen-exit-btn"),
-    game: document.getElementById("game-btn"),
     saveSettings: document.getElementById("save-settings"),
-    addTask: document.getElementById("add-task-btn"),
-    menuToggle: document.getElementById("menu-toggle"),
-    clearDone: document.getElementById("clear-done-btn"),
   },
 
   inputs: {
-    task: document.getElementById("task-input"),
     pomo: document.getElementById("setting-pomo"),
     short: document.getElementById("setting-short"),
     long: document.getElementById("setting-long"),
     auto: document.getElementById("setting-autostart"),
+    musicLink: document.getElementById("setting-musiclink"),
   },
 
   modals: {
     settings: document.getElementById("settings-modal"),
-    game: document.getElementById("game-modal"),
+    help: document.getElementById("help-modal"),
   },
 
   trackName: document.getElementById("current-track-name"),
-  taskList: document.getElementById("task-list"),
+
   bgVideo: document.querySelector(".background-video-container"),
   bgMesh: document.querySelector(".background-mesh"),
-  gameCanvas: document.getElementById("game-canvas"),
-  gameAutoBtn: document.getElementById("game-autoplay-btn"),
 };
 
 // --- Init ---
@@ -118,8 +106,8 @@ function init() {
   els.inputs.short.value = state.settings.shortBreak;
   els.inputs.long.value = state.settings.longBreak;
   els.inputs.auto.checked = state.settings.autoStart;
+  els.inputs.musicLink.checked = state.settings.musicLink;
 
-  renderTasks();
   updateTimerDisplay();
 
   if (window.YT && window.YT.Player) {
@@ -133,15 +121,6 @@ function init() {
   if (action === "start") {
     // Immediate start
     toggleTimer();
-  } else if (action === "tasks") {
-    // Expand task panel
-    document.querySelector(".task-sidebar-area").classList.add("force-open");
-    // Optional: Auto-focus input
-    setTimeout(() => els.inputs.task.focus(), 500);
-    // Close sidebar logic could be added if user clicks away, depending on Sidebar logic
-    // Currently sidebar is hover-based, so 'force-open' might need a way to close.
-    // Let's rely on standard hover behavior but maybe just flash it open or simulate hover.
-    // Better: Helper class to force open until interaction?
   }
 
   // Clear initial logs aggressively for first few seconds to hide YT errors
@@ -156,12 +135,6 @@ function toggleZen() {
     els.body.classList.add("zen-mode");
     // Ensure dock and sidebar are closed when entering Zen mode
     closeDock();
-    const taskArea = document.querySelector(".task-sidebar-area");
-    if (taskArea) {
-      taskArea.classList.remove("force-open");
-      const taskIcon = taskArea.querySelector(".task-sidebar-trigger i");
-      if (taskIcon) taskIcon.className = "fa-solid fa-list-check";
-    }
   } else {
     els.body.classList.remove("zen-mode");
   }
@@ -179,7 +152,7 @@ function updateTimerDisplay() {
     .padStart(2, "0")}`;
 
   els.timeText.textContent = txt;
-  document.title = `${txt} | FocusFlow`;
+  document.title = `${txt} | Flowwy`;
 
   let percent = 0;
   if (state.mode === "timer") {
@@ -199,9 +172,37 @@ function toggleTimer() {
     clearInterval(state.intervalId);
     state.isActive = false;
     els.btns.toggleTimer.innerHTML = '<i class="fa-solid fa-play"></i>';
+    // Show Footer & Dock
+    document.querySelector(".footer-links").style.opacity = "1";
+    document.querySelector(".footer-links").style.pointerEvents = "auto";
+    const dock = document.querySelector(".floating-dock-container");
+    if (dock) {
+      dock.style.opacity = "1";
+      dock.style.pointerEvents = "auto";
+    }
+
+    // Music Link: Pause if linked and currently auto-playing
+    if (state.settings.musicLink && state.player && state.isPlaying) {
+      state.player.pauseVideo();
+    }
   } else {
     state.isActive = true;
     els.btns.toggleTimer.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    // Hide Footer & Dock
+    document.querySelector(".footer-links").style.opacity = "0";
+    document.querySelector(".footer-links").style.pointerEvents = "none";
+    const dock = document.querySelector(".floating-dock-container");
+    if (dock) {
+      closeDock(); // ensure closed first
+      dock.style.opacity = "0";
+      dock.style.pointerEvents = "none";
+    }
+
+    // Music Link: Play if linked and not playing
+    if (state.settings.musicLink && state.player && !state.isPlaying) {
+      state.player.playVideo();
+    }
+
     state.intervalId = setInterval(tick, 1000);
   }
 }
@@ -222,7 +223,14 @@ function resetTimer() {
   els.btns.toggleTimer.innerHTML = '<i class="fa-solid fa-play"></i>';
 
   if (state.mode === "timer") {
-    state.timeLeft = state.settings.pomodoro * 60;
+    // Check label to determine which time to use
+    if (els.timerLabel.textContent === "SHORT BREAK") {
+      state.timeLeft = state.settings.shortBreak * 60;
+    } else if (els.timerLabel.textContent === "LONG BREAK") {
+      state.timeLeft = state.settings.longBreak * 60;
+    } else {
+      state.timeLeft = state.settings.pomodoro * 60;
+    }
     state.currDuration = state.timeLeft;
   } else {
     state.timeLeft = 0;
@@ -251,10 +259,26 @@ function saveSettings() {
   state.settings.shortBreak = parseInt(els.inputs.short.value) || 5;
   state.settings.longBreak = parseInt(els.inputs.long.value) || 15;
   state.settings.autoStart = els.inputs.auto.checked;
-  localStorage.setItem("focusflow_settings", JSON.stringify(state.settings));
+  state.settings.musicLink = els.inputs.musicLink.checked;
+  localStorage.setItem("flowwy_settings", JSON.stringify(state.settings));
 
-  // Close modal naturally
-  els.modals.settings.classList.remove("active");
+  // Show "Saved!" confirmation
+  const msg = document.getElementById("settings-saved-msg");
+  if (msg) {
+    msg.style.opacity = "1";
+    setTimeout(() => {
+      msg.style.opacity = "0";
+      // Close modal after a short delay so user sees the message
+      setTimeout(() => {
+        els.modals.settings.classList.remove("active");
+        setTimeout(() => (els.modals.settings.style.display = ""), 300);
+      }, 500);
+    }, 800);
+  } else {
+    // Fallback if element missing
+    els.modals.settings.classList.remove("active");
+    setTimeout(() => (els.modals.settings.style.display = ""), 300);
+  }
 
   if (state.mode === "timer" && !state.isActive) resetTimer();
 }
@@ -299,12 +323,66 @@ function onPlayerStateChange(e) {
     els.btns.musicPlay.innerHTML = '<i class="fa-solid fa-pause"></i>';
     els.trackName.textContent = state.playlists[state.currTrackIdx].name;
     if (musicInfo) musicInfo.classList.add("playing");
+
+    // Update Media Session Metadata
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: state.playlists[state.currTrackIdx].name,
+        artist: "Flowwy LoFi",
+        artwork: [
+          {
+            image: "img/logo.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+        ],
+      });
+      navigator.mediaSession.playbackState = "playing";
+    }
   } else if (e.data == YT.PlayerState.ENDED) {
     state.player.playVideo(); // Auto-loop
   } else {
     state.isPlaying = false;
     els.btns.musicPlay.innerHTML = '<i class="fa-solid fa-play"></i>';
     if (musicInfo) musicInfo.classList.remove("playing");
+
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "paused";
+    }
+  }
+}
+
+// Register Media Session Actions once
+if ("mediaSession" in navigator) {
+  const actions = [
+    ["play", () => state.player && state.player.playVideo()],
+    ["pause", () => state.player && state.player.pauseVideo()],
+    ["previoustrack", () => changeTrack(-1)],
+    ["nexttrack", () => changeTrack(1)],
+    [
+      "seekbackward",
+      () => {
+        if (state.player && typeof state.player.getCurrentTime === "function") {
+          state.player.seekTo(Math.max(state.player.getCurrentTime() - 10, 0));
+        }
+      },
+    ],
+    [
+      "seekforward",
+      () => {
+        if (state.player && typeof state.player.getCurrentTime === "function") {
+          state.player.seekTo(state.player.getCurrentTime() + 10);
+        }
+      },
+    ],
+  ];
+
+  for (const [action, handler] of actions) {
+    try {
+      navigator.mediaSession.setActionHandler(action, handler);
+    } catch (error) {
+      // Ignore unsupported actions
+    }
   }
 }
 
@@ -334,308 +412,6 @@ function changeTrack(dir) {
   }
 }
 
-// --- TASKS (Sorted: Starred -> Active -> Done) ---
-function addTask() {
-  const val = els.inputs.task.value.trim();
-  if (!val) return;
-  state.tasks.unshift({
-    id: Date.now(),
-    text: val,
-    done: false,
-    starred: false,
-  });
-  saveAndRender();
-  els.inputs.task.value = "";
-}
-
-function saveAndRender() {
-  localStorage.setItem("focusflow_tasks", JSON.stringify(state.tasks));
-  renderTasks();
-}
-
-function clearDoneTasks() {
-  state.tasks = state.tasks.filter((t) => !t.done);
-  saveAndRender();
-}
-
-function toggleStar(id) {
-  const t = state.tasks.find((x) => x.id === id);
-  if (t) {
-    t.starred = !t.starred;
-    saveAndRender();
-  }
-}
-
-function deleteTask(id) {
-  state.tasks = state.tasks.filter((t) => t.id !== id);
-  saveAndRender();
-}
-
-// --- TASKS (Manual Drag & Drop) ---
-function renderTasks() {
-  els.taskList.innerHTML = "";
-
-  state.tasks.forEach((task) => {
-    const li = document.createElement("li");
-    li.className = `task-item ${task.starred ? "star-active" : ""} ${
-      task.done ? "done-task" : ""
-    }`;
-    li.draggable = true; // Always draggable
-    li.dataset.id = task.id;
-
-    // Drag Events
-    li.addEventListener("dragstart", (e) => {
-      state.dragItem = task;
-      li.classList.add("dragging");
-      // Keep sidebar open while dragging
-      document.querySelector(".task-sidebar-area").classList.add("is-dragging");
-      e.dataTransfer.effectAllowed = "move";
-    });
-
-    li.addEventListener("dragend", (e) => {
-      li.classList.remove("dragging");
-      // Allow sidebar to close (with slight delay if needed, but CSS delay handles visual)
-      document
-        .querySelector(".task-sidebar-area")
-        .classList.remove("is-dragging");
-      state.dragItem = null;
-
-      // Drag Out to Delete Logic
-      const panel = document.querySelector(".task-panel");
-      const rect = panel.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-
-      // If dropped outside the panel
-      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-        deleteTask(task.id);
-        // Visual feedback could be added here (sound/puff)
-      }
-    });
-
-    li.innerHTML = `
-            <button class="task-btn star" onclick="event.stopPropagation(); toggleStar(${
-              task.id
-            })">
-                <i class="${
-                  task.starred ? "fa-solid" : "fa-regular"
-                } fa-star"></i>
-            </button>
-            <span>${task.text}</span>
-            <div class="task-actions">
-                <button class="task-btn del" onclick="event.stopPropagation(); deleteTask(${
-                  task.id
-                })"><i class="fa-solid fa-trash"></i></button>
-            </div>
-        `;
-
-    li.addEventListener("click", (e) => {
-      e.stopPropagation(); // Stop bubble so menu doesn't close
-      if (e.target.tagName !== "BUTTON" && e.target.tagName !== "I") {
-        const original = state.tasks.find((t) => t.id === task.id);
-        if (original) {
-          original.done = !original.done;
-          saveAndRender();
-        }
-      }
-    });
-
-    els.taskList.appendChild(li);
-  });
-}
-
-// Drag Over Logic for Reordering
-els.taskList.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  const afterElement = getDragAfterElement(els.taskList, e.clientY);
-  const dragging = document.querySelector(".dragging");
-  if (afterElement == null) {
-    els.taskList.appendChild(dragging);
-  } else {
-    els.taskList.insertBefore(dragging, afterElement);
-  }
-});
-
-// Update State on Drop (Reorder)
-els.taskList.addEventListener("drop", (e) => {
-  e.preventDefault();
-  updateTaskOrderFromDOM();
-});
-
-function getDragAfterElement(container, y) {
-  const draggableElements = [
-    ...container.querySelectorAll(".task-item:not(.dragging)"),
-  ];
-
-  return draggableElements.reduce(
-    (closest, child) => {
-      const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
-      } else {
-        return closest;
-      }
-    },
-    { offset: Number.NEGATIVE_INFINITY }
-  ).element;
-}
-
-function updateTaskOrderFromDOM() {
-  const newOrderIds = [...els.taskList.querySelectorAll(".task-item")].map(
-    (li) => parseInt(li.dataset.id)
-  );
-
-  // Reconstruct state.tasks based on DOM order
-  const newTasks = [];
-  newOrderIds.forEach((id) => {
-    const t = state.tasks.find((x) => x.id === id);
-    if (t) newTasks.push(t);
-  });
-
-  // Add backend any missing ones (safety)
-  if (newTasks.length === state.tasks.length) {
-    state.tasks = newTasks;
-    saveAndRender();
-  }
-}
-
-// --- GAME ---
-const ctx = els.gameCanvas.getContext("2d");
-const GRID = 15;
-
-function startGame() {
-  els.modals.game.classList.add("active");
-  state.gameActive = true;
-  state.gameInterval = setInterval(gameLoop, 100);
-  window.addEventListener("keydown", gameKey);
-}
-function stopGame() {
-  els.modals.game.classList.remove("active");
-  state.gameActive = false;
-  clearInterval(state.gameInterval);
-  window.removeEventListener("keydown", gameKey);
-}
-function gameKey(e) {
-  if (state.gameAuto) return;
-  switch (e.key) {
-    case "ArrowUp":
-    case "w":
-    case "W":
-      if (state.direction != "down") state.direction = "up";
-      break;
-    case "ArrowDown":
-    case "s":
-    case "S":
-      if (state.direction != "up") state.direction = "down";
-      break;
-    case "ArrowLeft":
-    case "a":
-    case "A":
-      if (state.direction != "right") state.direction = "left";
-      break;
-    case "ArrowRight":
-    case "d":
-    case "D":
-      if (state.direction != "left") state.direction = "right";
-      break;
-  }
-}
-function gameLoop() {
-  if (state.gameAuto) {
-    // Simple bot
-    const head = state.snake[0];
-    const food = state.food;
-    if (head.x < food.x) state.direction = "right";
-    else if (head.x > food.x) state.direction = "left";
-    else if (head.y < food.y) state.direction = "down";
-    else if (head.y > food.y) state.direction = "up";
-  }
-
-  let head = { ...state.snake[0] };
-  if (state.direction == "up") head.y--;
-  if (state.direction == "down") head.y++;
-  if (state.direction == "left") head.x--;
-  if (state.direction == "right") head.x++;
-
-  // Bounds wrap
-  if (head.x < 0) head.x = 20 - 1;
-  if (head.x >= 20) head.x = 0;
-  if (head.y < 0) head.y = 20 - 1;
-  if (head.y >= 20) head.y = 0;
-
-  state.snake.unshift(head);
-  if (head.x == state.food.x && head.y == state.food.y) {
-    state.score++;
-    state.food = {
-      x: Math.floor(Math.random() * 20),
-      y: Math.floor(Math.random() * 20),
-    };
-  } else {
-    state.snake.pop();
-  }
-
-  ctx.fillStyle = "#1e1b4b"; // dark blue bg matching theme
-  ctx.fillRect(0, 0, 300, 300);
-  ctx.fillStyle = "#ef4444";
-  ctx.fillRect(state.food.x * GRID, state.food.y * GRID, GRID - 2, GRID - 2);
-  ctx.fillStyle = state.gameAuto ? "#a855f7" : "#818cf8";
-  state.snake.forEach((p) =>
-    ctx.fillRect(p.x * GRID, p.y * GRID, GRID - 2, GRID - 2)
-  );
-}
-
-// --- Game Touch Controls (Swipe) ---
-let touchStartX = 0;
-let touchStartY = 0;
-
-els.gameCanvas.addEventListener(
-  "touchstart",
-  (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-  },
-  { passive: false }
-);
-
-els.gameCanvas.addEventListener(
-  "touchmove",
-  (e) => {
-    e.preventDefault(); // Prevent scrolling while playing
-  },
-  { passive: false }
-);
-
-els.gameCanvas.addEventListener(
-  "touchend",
-  (e) => {
-    const touchEndX = e.changedTouches[0].screenX;
-    const touchEndY = e.changedTouches[0].screenY;
-    handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
-  },
-  { passive: false }
-);
-
-function handleSwipe(sx, sy, ex, ey) {
-  const dx = ex - sx;
-  const dy = ey - sy;
-
-  if (Math.abs(dx) > Math.abs(dy)) {
-    // Horizontal
-    if (Math.abs(dx) > 30) {
-      // Threshold
-      if (dx > 0 && state.direction !== "left") state.direction = "right";
-      else if (dx < 0 && state.direction !== "right") state.direction = "left";
-    }
-  } else {
-    // Vertical
-    if (Math.abs(dy) > 30) {
-      if (dy > 0 && state.direction !== "up") state.direction = "down";
-      else if (dy < 0 && state.direction !== "down") state.direction = "up";
-    }
-  }
-}
-
 // --- Listeners ---
 els.btns.settings.addEventListener("click", (e) => {
   e.preventDefault();
@@ -649,16 +425,14 @@ document.getElementById("close-settings").addEventListener("click", () => {
 });
 els.btns.saveSettings.addEventListener("click", saveSettings);
 
-els.btns.fullscreen.addEventListener("click", () => {
-  closeDock();
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-  else document.exitFullscreen();
-});
-els.btns.zen.addEventListener("click", (e) => {
-  e.preventDefault();
-  closeDock();
-  toggleZen();
-});
+// Help Modal
+if (document.getElementById("close-help-btn")) {
+  document.getElementById("close-help-btn").addEventListener("click", () => {
+    els.modals.help.classList.remove("active");
+    setTimeout(() => (els.modals.help.style.display = ""), 300);
+  });
+}
+
 // Ensure Zen Exit is accessible on mobile (touch)
 els.btns.zenExit.addEventListener("click", (e) => {
   e.preventDefault(); // Prevent ghost clicks
@@ -688,16 +462,6 @@ els.btns.visual.addEventListener("click", () => {
   }
 });
 
-els.btns.game.addEventListener("click", () => {
-  closeDock();
-  startGame();
-});
-document.getElementById("close-game-btn").addEventListener("click", stopGame);
-els.gameAutoBtn.addEventListener("click", () => {
-  state.gameAuto = !state.gameAuto;
-  els.gameAutoBtn.classList.toggle("active");
-});
-
 els.btns.toggleTimer.addEventListener("click", toggleTimer);
 els.btns.reset.addEventListener("click", resetTimer);
 els.btns.switchMode.addEventListener("click", switchTimerMode);
@@ -717,102 +481,205 @@ if (els.btns.musicPrev) {
   els.btns.musicPrev.addEventListener("click", () => changeTrack(-1));
 }
 
-els.btns.addTask.addEventListener("click", addTask);
-els.inputs.task.addEventListener(
-  "keypress",
-  (e) => e.key === "Enter" && addTask()
-);
-
 // --- Mobile Toggles ---
 
-// Floating Dock (Hamburger)
+// Floating Dock (Simplified)
 function closeDock() {
   const dock = document.querySelector(".floating-dock-container");
-  if (dock && dock.classList.contains("active")) {
-    dock.classList.remove("active");
-    const icon = els.btns.menuToggle.querySelector("i");
-    if (icon) icon.className = "fa-solid fa-bars";
-  }
+  if (dock) dock.classList.remove("active");
 }
 
-// Toggle Handler
-function toggleDock(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  const dock = document.querySelector(".floating-dock-container");
-  const isOpen = dock.classList.toggle("active");
+// Remove complex dock toggle logic as it's now a single button
 
-  // Icon Swap
-  const icon = els.btns.menuToggle.querySelector("i");
-  if (isOpen) {
-    icon.className = "fa-solid fa-xmark";
-  } else {
-    icon.className = "fa-solid fa-bars";
-  }
-}
+// Disable Ctrl+Shift+I (DevTools) and Add Custom Shortcuts
+// Disable Ctrl+Shift+I (DevTools) and Add Custom Shortcuts
+document.addEventListener("keydown", function (e) {
+  // DevTools - Commented out for development
+  // if (e.ctrlKey && e.shiftKey && e.code === 'KeyI') e.preventDefault();
 
-els.btns.menuToggle.addEventListener("click", toggleDock);
-els.btns.menuToggle.addEventListener("touchstart", toggleDock, {
-  passive: false,
-}); // Instant touch response
+  // Safe check for inputs
+  if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
 
-// Task Sidebar
-const taskSidebarArea = document.querySelector(".task-sidebar-area");
-const taskTrigger = document.querySelector(".task-sidebar-trigger");
-const taskIcon = taskTrigger.querySelector("i");
-
-// Prevent clicks INSIDE the panel from closing it
-document.querySelector(".task-panel").addEventListener("click", (e) => {
-  e.stopPropagation();
-});
-
-taskTrigger.addEventListener("click", (e) => {
-  e.stopPropagation();
-  const isOpen = taskSidebarArea.classList.toggle("force-open");
-
-  // Icon Swap
-  if (isOpen) {
-    taskIcon.className = "fa-solid fa-xmark";
-  } else {
-    taskIcon.className = "fa-solid fa-list-check";
-  }
-});
-
-// Close menus when clicking outside
-document.addEventListener("click", (e) => {
-  const dock = document.querySelector(".floating-dock-container");
-
-  // Close Dock if clicked OUTSIDE options or on the OVERLAY
-  // Since we added a ::before overlay to the container, clicking the "background"
-  // is actually clicking the container. We want to close if we didn't click a button.
-  if (dock.classList.contains("active")) {
-    const isBtn = e.target.closest("button");
-    const isOption = e.target.closest(".dock-options");
-    // If we clicked the container (overlay) but NOT a button or the options wrapper
-    if (!isBtn && !isOption) {
-      dock.classList.remove("active");
-      const icon = els.btns.menuToggle.querySelector("i");
-      icon.className = "fa-solid fa-bars";
+  // Shift + S (Toggle Settings)
+  if (e.shiftKey && (e.key === "S" || e.key === "s")) {
+    e.preventDefault();
+    if (els.modals.settings.classList.contains("active")) {
+      // Close
+      els.modals.settings.classList.remove("active");
+      setTimeout(() => (els.modals.settings.style.display = ""), 300);
+    } else {
+      // Open
+      els.modals.settings.style.display = "flex";
+      setTimeout(() => els.modals.settings.classList.add("active"), 10);
+      closeDock();
     }
   }
 
-  // Close Sidebar if clicked outside (and not dragging)
-  if (
-    taskSidebarArea.classList.contains("force-open") &&
-    !taskSidebarArea.contains(e.target) &&
-    !taskSidebarArea.classList.contains("is-dragging")
-  ) {
-    taskSidebarArea.classList.remove("force-open");
-    // Reset Icon
-    taskIcon.className = "fa-solid fa-list-check";
+  // Esc (Close Modals)
+  if (e.key === "Escape") {
+    if (els.modals.settings.classList.contains("active")) {
+      e.preventDefault();
+      els.modals.settings.classList.remove("active");
+      setTimeout(() => (els.modals.settings.style.display = ""), 300);
+    }
+    if (els.modals.help && els.modals.help.classList.contains("active")) {
+      e.preventDefault();
+      els.modals.help.classList.remove("active");
+      setTimeout(() => (els.modals.help.style.display = ""), 300);
+    }
+  }
+
+  // Shift + R (Reset Timer)
+  if (e.shiftKey && (e.key === "R" || e.key === "r")) {
+    e.preventDefault();
+    resetTimer();
+  }
+
+  // Shift + P (Pomodoro Mode)
+  if (e.shiftKey && (e.key === "P" || e.key === "p")) {
+    e.preventDefault();
+    state.mode = "timer";
+    els.timerLabel.textContent = "FOCUS";
+    state.timeLeft = state.settings.pomodoro * 60;
+    state.currDuration = state.timeLeft;
+    resetTimer(); // Update display and stop any running timer
+  }
+
+  // Shift + B (Short Break)
+  if (e.shiftKey && (e.key === "B" || e.key === "b")) {
+    e.preventDefault();
+    state.mode = "timer";
+    els.timerLabel.textContent = "SHORT BREAK";
+    state.timeLeft = state.settings.shortBreak * 60;
+    state.currDuration = state.timeLeft;
+    resetTimer();
+  }
+
+  // Shift + L (Long Break)
+  if (e.shiftKey && (e.key === "L" || e.key === "l")) {
+    e.preventDefault();
+    state.mode = "timer";
+    els.timerLabel.textContent = "LONG BREAK";
+    state.timeLeft = state.settings.longBreak * 60;
+    state.currDuration = state.timeLeft;
+    resetTimer();
+  }
+
+  // Z (Toggle Zen Mode)
+  if ((e.key === "z" || e.key === "Z") && !e.ctrlKey) {
+    toggleZen();
+  }
+
+  // K (Play/Pause Music - Standard)
+  if ((e.key === "k" || e.key === "K") && !e.ctrlKey) {
+    if (state.player) {
+      if (state.isPlaying) state.player.pauseVideo();
+      else state.player.playVideo();
+    }
+  }
+
+  // Ctrl + F (Fullscreen)
+  if (e.ctrlKey && (e.key === "f" || e.key === "F")) {
+    e.preventDefault();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }
+
+  // Spacebar (Toggle Timer - Open/Close/Pause)
+  if (e.code === "Space" && !e.shiftKey) {
+    e.preventDefault();
+    toggleTimer();
+  }
+
+  // Shift + Spacebar (Switch to Stopwatch & Start)
+  if (e.code === "Space" && e.shiftKey) {
+    e.preventDefault();
+    if (state.mode === "timer") {
+      switchTimerMode();
+    }
+    if (!state.isActive) {
+      toggleTimer();
+    }
+  }
+
+  // Next Track: > (Shift+.)
+  if (e.key === ">" || (e.key === "." && e.shiftKey)) {
+    changeTrack(1);
+  }
+
+  // Prev Track: < (Shift+,)
+  if (e.key === "<" || (e.key === "," && e.shiftKey)) {
+    changeTrack(-1);
+  }
+
+  // M: Mute/Unmute
+  if (e.key === "m" || e.key === "M") {
+    if (state.player && typeof state.player.isMuted === "function") {
+      if (state.player.isMuted()) {
+        state.player.unMute();
+      } else {
+        state.player.mute();
+      }
+    }
+  }
+
+  // V: Toggle Video Background
+  if (e.key === "v" || e.key === "V") {
+    els.btns.visual.click();
+  }
+
+  // J: Seek Backward 10s
+  if (e.key === "j" || e.key === "J") {
+    if (state.player && typeof state.player.getCurrentTime === "function") {
+      const curr = state.player.getCurrentTime();
+      state.player.seekTo(Math.max(0, curr - 10), true);
+    }
+  }
+
+  // L: Seek Forward 10s
+  if (e.key === "l" || e.key === "L") {
+    if (state.player && typeof state.player.getCurrentTime === "function") {
+      const curr = state.player.getCurrentTime();
+      state.player.seekTo(curr + 10, true);
+    }
   }
 });
 
-els.btns.clearDone.addEventListener("click", clearDoneTasks);
+// Double Tap for Zen Mode
+let lastTap = 0;
+document.body.addEventListener("dblclick", (e) => {
+  // Prevent if clicking on interactive elements
+  if (
+    e.target.closest("button") ||
+    e.target.closest("input") ||
+    e.target.closest(".modal-content")
+  )
+    return;
+  toggleZen();
+});
+// Touch double tap support
+document.body.addEventListener("touchend", (e) => {
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTap;
+  if (tapLength < 500 && tapLength > 0) {
+    if (
+      e.target.closest("button") ||
+      e.target.closest("input") ||
+      e.target.closest(".modal-content")
+    )
+      return;
+    e.preventDefault();
+    toggleZen();
+  }
+  lastTap = currentTime;
+});
 
 // Global exposed functions for inline onclicks
-window.toggleStar = toggleStar;
-window.deleteTask = deleteTask;
 
 function triggerMotivation() {
   const quote = motivations[Math.floor(Math.random() * motivations.length)];
@@ -825,14 +692,14 @@ function triggerMotivation() {
   if (Notification.permission === "granted") {
     new Notification("Daily Motivation", {
       body: quote,
-      icon: "img/khush.png",
+      icon: "img/logo.png",
     });
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
         new Notification("Daily Motivation", {
           body: quote,
-          icon: "img/khush.png",
+          icon: "img/logo.png",
         });
       }
     });
@@ -875,28 +742,6 @@ window.onerror = function (msg, url, line, col, error) {
   }
 };
 
-// Keyboard Shortcuts
-document.addEventListener("keydown", (e) => {
-  // Ignore if typing in an input
-  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-
-  switch (e.code) {
-    case "Space":
-      e.preventDefault();
-      toggleTimer();
-      break;
-    case "KeyM":
-      if (state.player) {
-        if (state.isPlaying) state.player.pauseVideo();
-        else state.player.playVideo();
-      }
-      break;
-    case "KeyN":
-      changeTrack(1);
-      break;
-  }
-});
-
 // PWA Install Prompt
 let deferredPrompt;
 const installBtn = document.getElementById("install-btn");
@@ -918,3 +763,89 @@ installBtn.addEventListener("click", async () => {
 });
 
 init();
+
+// Dedicated high-priority listener for Help Shortcut (Ctrl + /)
+// Dedicated high-priority listener for Help Shortcut (Ctrl + /) - "Hold to Show"
+let isHelpShortcutHeld = false;
+
+window.addEventListener(
+  "keydown",
+  function (e) {
+    // Check for Ctrl + / or Ctrl + ? (Shift + /)
+    if (e.ctrlKey && (e.code === "Slash" || e.key === "/" || e.key === "?")) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!isHelpShortcutHeld) {
+        console.log("Help shortcut held down");
+        isHelpShortcutHeld = true;
+
+        const helpModal = document.getElementById("help-modal");
+        if (helpModal) {
+          // Force styles
+          const style = helpModal.style;
+          style.display = "flex";
+          style.position = "fixed";
+          style.top = "0";
+          style.left = "0";
+          style.width = "100%";
+          style.height = "100%";
+          style.opacity = "1";
+          style.visibility = "visible";
+          style.zIndex = "2147483647";
+
+          helpModal.classList.add("active");
+
+          const dock = document.querySelector(".floating-dock-container");
+          if (dock) dock.classList.remove("active");
+        }
+      }
+    }
+  },
+  true,
+);
+
+window.addEventListener(
+  "keyup",
+  function (e) {
+    // If we were holding the shortcut, and now release Ctrl or Slash
+    if (isHelpShortcutHeld) {
+      if (
+        e.key === "Control" ||
+        e.key === "Meta" || // Mac Command
+        e.code === "Slash" ||
+        e.key === "/" ||
+        e.key === "?"
+      ) {
+        console.log("Help shortcut released");
+        isHelpShortcutHeld = false;
+
+        const helpModal = document.getElementById("help-modal");
+        if (helpModal) {
+          helpModal.classList.remove("active");
+          // Allow animation to play out or force clear after delay?
+          // Since "hold" feels instant, maybe clear styles immediately or let CSS transition handle it?
+          // The CSS has a transition on opacity/visibility.
+          // But we set inline styles to force it open. We need to clear those to let it close.
+
+          helpModal.style.display = "";
+          helpModal.style.opacity = "";
+          helpModal.style.visibility = "";
+          helpModal.style.zIndex = "";
+        }
+      }
+    }
+  },
+  true,
+);
+
+// --- Loading Screen ---
+window.addEventListener("load", () => {
+  const loader = document.getElementById("loading-screen");
+  if (loader) {
+    loader.classList.add("hidden");
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 800);
+  }
+});

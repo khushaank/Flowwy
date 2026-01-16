@@ -1,18 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flowwy | Premium Focus & Study</title>
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 20L20 70H80L50 20Z' stroke='%23818cf8' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M50 35L30 70H70L50 35Z' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='50' cy='45' r='5' fill='%23818cf8'/%3E%3Cpath d='M50 70V90M35 80L45 90M65 80L55 90' stroke='%23818cf8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"
-    />
+    <link rel="icon" type="image/png" href="img/logo.png" />
 
     <meta
       name="description"
-      content="Flowwy (formerly FocusFlow) is a premium, distraction-free study timer and task manager featuring Pomodoro techniques, Lofi music integration, and PWA offline capabilities. Hosted at https://flowwy.netlify.app/"
+      content="Flowwy is a premium, distraction-free study timer and task manager featuring Pomodoro techniques, Lofi music integration, and PWA offline capabilities. Hosted at https://flowwy.netlify.app/"
     />
     <meta
       name="keywords"
@@ -46,6 +42,9 @@
       content="Master your time with Flowwy. A beautiful, minimalist study tool with built-in Lofi, tasks, and gamification by Khushaank Gupta."
     />
     <meta property="twitter:image" content="img/preview-desktop.png" />
+    <meta property="twitter:creator" content="@Khushaankgupta" />
+    <meta property="og:site_name" content="Flowwy" />
+    <meta name="application-name" content="Flowwy" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -58,7 +57,28 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
 
-    <link rel="stylesheet" href="styles.css?v=1.1" />
+    <link rel="stylesheet" href="styles.css?v=1.5" />
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Flowwy",
+        "url": "https://flowwy.netlify.app/",
+        "description": "Premium distraction-free study timer with Lofi music, Pomodoro technique, and task management.",
+        "author": {
+          "@type": "Person",
+          "name": "Khushaank Gupta"
+        },
+        "applicationCategory": "Productivity",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
   </head>
   <body oncontextmenu="return false;">
     <!-- Background Video -->
@@ -81,28 +101,12 @@
       <i class="fa-solid fa-download"></i> Install App
     </button>
     <!-- Logo Svg (Tree) -->
-    <div class="app-logo" title="FocusFlow">
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M50 20L20 70H80L50 20Z"
-          stroke="#818cf8"
-          stroke-width="4"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M50 35L30 70H70L50 35Z"
-          stroke="white"
-          stroke-width="3"
-          stroke-linejoin="round"
-        />
-        <circle cx="50" cy="45" r="5" fill="#818cf8" />
-        <path
-          d="M50 70V90M35 80L45 90M65 80L55 90"
-          stroke="#818cf8"
-          stroke-width="4"
-          stroke-linecap="round"
-        />
-      </svg>
+    <div class="app-logo" title="Flowwy">
+      <img
+        src="img/logo.png"
+        alt="Flowwy Logo"
+        style="width: 100%; height: 100%; object-fit: contain"
+      />
     </div>
 
     <!-- Backgrounds -->
@@ -196,61 +200,24 @@
       </div>
     </main>
 
-    <!-- Hover Task Sidebar with Extended Hit Area -->
-    <div class="task-sidebar-area">
-      <div class="task-sidebar-trigger">
-        <div class="task-icon"><i class="fa-solid fa-list-check"></i></div>
-      </div>
-      <div class="task-panel">
-        <div class="task-header-row">
-          <h3>Goals</h3>
-          <button
-            id="clear-done-btn"
-            title="Clear Completed"
-            style="
-              background: none;
-              border: none;
-              color: var(--text-muted);
-              cursor: pointer;
-            "
-          >
-            <i class="fa-solid fa-broom"></i>
-          </button>
+    <!-- Custom Loading Screen -->
+    <div id="loading-screen">
+      <div class="loader-content">
+        <img src="img/logo.png" alt="Loading..." class="pulse-logo" />
+        <div class="loader-bar">
+          <div class="loader-fill"></div>
         </div>
-        <div class="input-group">
-          <input type="text" id="task-input" placeholder="Add a new task..." />
-          <button id="add-task-btn"><i class="fa-solid fa-plus"></i></button>
-        </div>
-        <ul class="task-list" id="task-list">
-          <!-- Tasks injected here -->
-        </ul>
       </div>
     </div>
 
-    <!-- Circular Floating Menu -->
-    <div class="floating-dock-container">
-      <div class="dock-options">
-        <button class="dock-item" id="settings-btn">
-          <i class="fa-solid fa-gear"></i>
-          <span class="dock-label">Settings</span>
-        </button>
-        <button class="dock-item" id="fullscreen-btn">
-          <i class="fa-solid fa-expand"></i>
-          <span class="dock-label">Screen</span>
-        </button>
-        <button class="dock-item" id="zen-btn">
-          <i class="fa-solid fa-eye-slash"></i>
-          <span class="dock-label">Zen</span>
-        </button>
-        <button class="dock-item" id="game-btn">
-          <i class="fa-solid fa-gamepad"></i>
-          <span class="dock-label">Game</span>
-        </button>
-      </div>
-      <button class="dock-main" id="menu-toggle">
-        <i class="fa-solid fa-bars"></i>
-      </button>
-    </div>
+    <!-- Circular Floating Menu (Settings) - Moved to Top Right -->
+    <button
+      class="settings-floating-btn"
+      id="settings-trigger-btn"
+      title="Settings"
+    >
+      <i class="fa-solid fa-gear"></i>
+    </button>
 
     <!-- Settings Modal -->
     <div class="modal" id="settings-modal">
@@ -285,38 +252,108 @@
           <label>Auto-start Breaks?</label>
           <input type="checkbox" id="setting-autostart" style="width: auto" />
         </div>
+        <div
+          class="setting-group"
+          style="
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <label>Link Music to Timer?</label>
+          <input type="checkbox" id="setting-musiclink" style="width: auto" />
+        </div>
         <button class="save-btn" id="save-settings">Save Changes</button>
+        <p
+          id="settings-saved-msg"
+          style="
+            color: #4ade80;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+          "
+        >
+          Settings Saved!
+        </p>
       </div>
     </div>
-
-    <!-- Game Modal -->
-    <div class="modal" id="game-modal">
+    <!-- Help / Shortcuts Modal -->
+    <div class="modal" id="help-modal">
       <div class="modal-overlay-click"></div>
-      <div class="modal-content" style="align-items: center">
-        <div class="modal-header" style="width: 100%">
-          <h3>Snake Break</h3>
-          <button class="close-modal" id="close-game-btn">
+      <div class="modal-content" style="max-width: 500px">
+        <div class="modal-header">
+          <h2>Keyboard Shortcuts</h2>
+          <button class="close-modal" id="close-help-btn">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
-        <canvas
-          id="game-canvas"
-          width="300"
-          height="300"
-          style="border-radius: 12px; background: #000"
-        ></canvas>
-        <div style="display: flex; gap: 1rem; margin-top: 1rem">
-          <button
-            id="game-autoplay-btn"
-            class="save-btn"
-            style="background: #a855f7"
-          >
-            <i class="fa-solid fa-robot"></i> Auto-Pilot
-          </button>
+        <div class="shortcuts-grid">
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Ctrl</kbd> + <kbd>?</kbd></span>
+            <span class="action">Show Help</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Shift</kbd> + <kbd>S</kbd></span>
+            <span class="action">Settings</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Z</kbd></span>
+            <span class="action">Zen Mode</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Ctrl</kbd> + <kbd>F</kbd></span>
+            <span class="action">Fullscreen</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Space</kbd></span>
+            <span class="action">Start/Pause Timer</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Shift</kbd> + <kbd>R</kbd></span>
+            <span class="action">Reset Timer</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Shift</kbd> + <kbd>P</kbd></span>
+            <span class="action">Pomodoro Focus</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Shift</kbd> + <kbd>B</kbd></span>
+            <span class="action">Short Break</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Shift</kbd> + <kbd>L</kbd></span>
+            <span class="action">Long Break</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>K</kbd></span>
+            <span class="action">Play/Pause Music</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>&gt;</kbd> / <kbd>&lt;</kbd></span>
+            <span class="action">Next / Prev Song</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>M</kbd></span>
+            <span class="action">Mute/Unmute</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>J</kbd> / <kbd>L</kbd></span>
+            <span class="action">-10s / +10s Music</span>
+          </div>
+          <div class="shortcut-item">
+            <span class="keys"><kbd>V</kbd></span>
+            <span class="action">Toggle Video</span>
+          </div>
+
+          <div class="shortcut-item">
+            <span class="keys"><kbd>Esc</kbd></span>
+            <span class="action">Close / Exit</span>
+          </div>
         </div>
       </div>
     </div>
-
     <!-- Security & PWA -->
 
     <link rel="manifest" href="manifest.json" />
@@ -325,12 +362,6 @@
     <!-- Footer Links -->
     <div class="footer-links">
       <div style="margin-bottom: 0.5rem">
-        <a
-          href="donate.html"
-          target="_blank"
-          style="color: white; text-decoration: none; margin-right: 1rem"
-          >Donate</a
-        >
         <a
           href="privacy.html"
           target="_blank"
@@ -395,7 +426,7 @@
       </div>
     </div>
 
-    <script src="script.js?v=1.1"></script>
+    <script src="script.js?v=1.5"></script>
     <script>
       // PWA Registration
       // PWA Registration
