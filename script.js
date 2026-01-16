@@ -21,36 +21,20 @@ const state = {
 
   playlists: [
     {
-      name: "Lofi Hip Hop Study Mix",
-      url: "https://archive.org/download/lofi-hip-hop-mix-2021/LoFi%20Hip%20Hop%20Mix%202021.mp3",
+      name: "Lofi Study 1",
+      url: "https://ia801506.us.archive.org/11/items/tvtunes_11602/Lofi%20hip%20hop%20mix%20-%20Beats%20to%20relax_study%20to%20%5BOFFICIAL%5D.mp3",
     },
     {
-      name: "Chill Lofi Beats",
-      url: "https://archive.org/download/chill-lofi-beats-mix/Chill_Lofi_Beats_Mix.mp3",
+      name: "Lofi Study 2",
+      url: "https://ia801404.us.archive.org/18/items/lofihiphop_202008/lofi%20hip%20hop.mp3",
     },
     {
-      name: "Jazz Lofi Study",
-      url: "https://archive.org/download/jazz-lofi-study-music/Jazz_Lofi_Study_Music.mp3",
+      name: "Chill Beats",
+      url: "https://ia601504.us.archive.org/27/items/lofi-study-beats/Lofi%20Study%20Beats.mp3",
     },
     {
-      name: "Ambient Study Music",
-      url: "https://archive.org/download/ambient-study-music-2022/Ambient_Study_Music.mp3",
-    },
-    {
-      name: "Rainy Day Lofi",
-      url: "https://archive.org/download/rainy-day-lofi-mix/Rainy_Day_Lofi.mp3",
-    },
-    {
-      name: "Midnight Lofi",
-      url: "https://archive.org/download/midnight-lofi-beats/Midnight_Lofi_Beats.mp3",
-    },
-    {
-      name: "Focus Flow",
-      url: "https://archive.org/download/focus-flow-lofi/Focus_Flow_Lofi.mp3",
-    },
-    {
-      name: "Chill Vibes Only",
-      url: "https://archive.org/download/chill-vibes-lofi/Chill_Vibes_Lofi.mp3",
+      name: "Rainy Day",
+      url: "https://ia600304.us.archive.org/30/items/rainy-day-lofi/Rainy%20Day%20Lofi.mp3",
     },
   ],
 
