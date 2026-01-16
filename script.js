@@ -289,7 +289,7 @@ tag.src = "https://www.youtube.com/iframe_api";
 var firstScriptTag = document.getElementsByTagName("script")[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-function onYouTubeIframeAPIReady() {
+window.onYouTubeIframeAPIReady = function () {
   if (!navigator.onLine) {
     console.warn("Offline: YouTube player setup skipped");
     els.trackName.textContent = "Offline Mode - Music Unavailable";
@@ -314,7 +314,7 @@ function onYouTubeIframeAPIReady() {
       onError: onPlayerError,
     },
   });
-}
+};
 
 function onPlayerStateChange(e) {
   const musicInfo = document.querySelector(".music-info");
