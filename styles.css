@@ -937,11 +937,16 @@ body.zen-mode .zen-exit-overlay {
 
   .logo {
     position: relative;
-    margin: 3rem auto 1rem auto; /* More top margin to avoid status bar */
+    margin: 4rem auto 1rem auto; /* More top margin to avoid status bar */
     justify-content: center;
     transform: none;
     left: auto;
     width: 100%;
+  }
+
+  .app-logo {
+    top: 1rem; /* Reduce from 2rem to 1rem on mobile for tighter spacing */
+    left: 1rem;
   }
 
   .background-mesh {
@@ -974,7 +979,7 @@ body.zen-mode .zen-exit-overlay {
   .focus-center {
     width: 100%;
     gap: 1rem;
-    padding: 60px 1rem 120px 1rem; /* Generous bottom padding for scroll space */
+    padding: 80px 1rem 120px 1rem; /* Increased top padding for more header space */
     justify-content: center;
   }
 
