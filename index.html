@@ -112,6 +112,17 @@
     <!-- Backgrounds -->
     <div class="background-mesh"></div>
 
+    <!-- HTML5 Video Background -->
+    <div class="background-video-container">
+      <video id="video-background" autoplay muted loop playsinline>
+        <source
+          src="https://videos.pexels.com/video-files/6985271/6985271-uhd_2560_1440_25fps.mp4"
+          type="video/mp4"
+        />
+      </video>
+      <div class="background-video-overlay"></div>
+    </div>
+
     <!-- Hidden Audio Player for Archive.org -->
     <audio id="audio-player" preload="metadata"></audio>
 
@@ -191,6 +202,9 @@
           </button>
           <button class="music-btn" id="next-track">
             <i class="fa-solid fa-forward-step"></i>
+          </button>
+          <button class="music-btn" id="visual-btn" title="Toggle Visuals">
+            <i class="fa-solid fa-video"></i>
           </button>
         </div>
       </div>
@@ -422,7 +436,6 @@
       </div>
     </div>
 
-    <script src="audio-player.js?v=2.0"></script>
     <script src="script.js?v=2.0"></script>
     <script>
       // PWA Registration

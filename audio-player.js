@@ -179,6 +179,27 @@ function setupMediaSession() {
   }
 }
 
+// Toggle between mesh and video backgrounds
+function toggleVisuals() {
+  if (!state.visualMode) state.visualMode = "mesh";
+
+  if (state.visualMode === "mesh") {
+    state.visualMode = "video";
+    document.body.classList.add("video-mode");
+  } else {
+    state.visualMode = "mesh";
+    document.body.classList.remove("video-mode");
+  }
+}
+
+// Add visual button listener
+document.addEventListener("DOMContentLoaded", () => {
+  const visualBtn = document.getElementById("visual-btn");
+  if (visualBtn) {
+    visualBtn.addEventListener("click", toggleVisuals);
+  }
+});
+
 // Initialize when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initArchiveAudioPlayer);
